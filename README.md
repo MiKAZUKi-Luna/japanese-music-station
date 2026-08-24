@@ -1,2 +1,88 @@
-# japanese-music-station
-a local music station where you paste Youtube link and create your own playlist, with 80s Japanese theme
+# Japanese Music Station (シティポップ・ステーション) 🎵🌆
+
+เว็บแอปพลิเคชันสำหรับเปิดเพลง YouTube แบบคิวเพลง (Queue Player) ในธีม **Pixel Art × 80s Japanese City Pop** ออกแบบให้เป็น Single Self-Contained HTML File ที่สามารถรันได้ทันทีเพียงดับเบิลคลิก หรือนำไป Deploy บน Netlify ผ่าน GitHub ได้ง่ายโดยไม่ต้องผ่านขั้นตอนการ Build หรือลง Node.js/npm ใดๆ
+
+---
+
+## 🌃 1. แนวคิดของโปรเจกต์ (Concept & Visual North Star)
+
+* **บรรยากาศเสมือนห้อง DJ Booth ยุค 80s**: ได้รับแรงบันดาลใจจากความคลาสสิกของเกมแนว Retro Virtual World ผสมผสานกับเพลง City Pop ญี่ปุ่น
+* **ภาพกราฟิกฉากหลัง**: ตรอกซอยญี่ปุ่นยามพลบค่ำ (Dusk Alleyway) สไตล์ 16/32-Bit Pixel Art 
+  * ท้องฟ้าไล่เฉดสีทไวไลท์ ม่วง-ชมพู-ส้ม พร้อมดาวระยิบระยับ
+  * เงาภูเขาไฟฟูจิและโตเกียวทาวเวอร์เรืองแสงในระยะไกล
+  * เสาไฟฟ้าแรงสูงพร้อมสายไฟระโยงระยางพาดผ่านตรอก
+  * ป้ายไฟนีออนภาษาญี่ปุ่นเรืองแสง (「CITY POP」, 「深夜音楽」, 「BAR 夜間飛行」) และโคมไฟแดง (赤提灯)
+  * หน้าต่างบ้านพักเรืองแสงสีส้มอบอุ่นและเงาสะท้อนบนพื้นถนน
+
+---
+
+## 🎨 2. โทนสีและข้อกำหนดด้านดีไซน์ (Color Palette & Styling)
+
+### พาเลทสีหลัก (Exact Hex)
+* **Sky top (navy)**: `#1F1A3A`
+* **Sky mid (purple)**: `#5B3256`
+* **Sky sunset**: `#A2536A`
+* **Sky dusk (orange)**: `#E08573`
+* **Building shadow**: `#131021`
+* **Wall base**: `#2A2238`
+* **Warm light accent**: `#FFC061`
+* **Neon pink accent**: `#F57D7C`
+* **Panel background**: `#1D1728` (โปร่งแสง 88%)
+* **Pixel border**: `#3D2F4C`
+
+### กฎการออกแบบ (Pixel-Art Rules)
+* **Zero Border-Radius**: มุมเหลี่ยมสนิท 100% ไม่มีขอบมน
+* **Pixel Border & Shadow**: ขอบหนา 2–4px solid `#3D2F4C` พร้อมเงาตกกระทบแบบแข็ง `box-shadow: 4px 4px 0px #000` (เมื่อกดจะยุบตัวลง `translate(2px, 2px)`)
+* **Retro Monospace Typography**: ใช้ฟอนต์พิกเซล `Press Start 2P` สำหรับหัวข้อ, `VT323` สำหรับข้อความทั่วไป, และ `DotGothic16` สำหรับภาษาญี่ปุ่น
+* **Step Transitions**: อนิเมชันทุกส่วนใช้ฟังก์ชัน `steps()` เพื่อให้จังหวะการขยับมีความกระตุกแบบเกมยุค 90s
+
+---
+
+## 📐 3. โครงสร้างเลย์เอาต์และการทำงาน (Layout & Architecture)
+
+แบ่งหน้าจอออกเป็น 2 คอลัมน์ (อัตราส่วน 65% : 35%) และปรับเป็นคอลัมน์เดี่ยวบนหน้าจอขนาดเล็ก (<900px):
+
+### พาเนลซ้าย (65% - DJ Player & Controls):
+1. **หน้าจอเครื่องเล่น YouTube (16:9)**: ฝัง YouTube IFrame Player API เต็มรูปแบบ พร้อมแถบควบคุมมาตรฐาน (ปุ่มฟันเฟือง ⚙️ ตั้งค่าความละเอียด 1080p/720p และปุ่มเปิด/ปิด CC Subtitles)
+2. **Now Playing Bar**: แสดงชื่อเพลงแบบตัววิ่ง (Marquee), รหัส Video ID, แถบเวลา และแถบ Scrubber พิกเซลที่คลิกเพื่อเลื่อนเวลาได้
+3. **ช่องใส่ URL + ปุ่ม "เพิ่มคิว"**: รองรับลิงก์ YouTube ทุกรูปแบบ (`youtube.com`, `youtu.be`, `shorts`) พร้อมระบบดึงชื่อเพลงอัตโนมัติ
+4. **ชุดปุ่มควบคุมการเล่น (Transport Controls)**:
+   * ⏮ Prev (ย้อนกลับ / เล่นใหม่)
+   * ⏯ Play / Pause
+   * ⏭ Next (ข้ามไปเพลงถัดไป)
+   * 🔂/🔁 Loop Mode (ปิด / วนซ้ำเพลงเดียว / วนซ้ำคิวทั้งหมด)
+   * 🔀 Shuffle (สลับลำดับคิว)
+   * 💬 CC (ปุ่มลัดเปิด/ปิดคำบรรยาย)
+   * ⚡ Speed Selector (0.75x, 1x, 1.25x, 1.5x)
+   * 🔊 แถบปรับระดับเสียง (0–100%) พร้อมปุ่ม Mute
+   * 🗑 ล้างคิว
+
+### พาเนลขวา (35% - Queue & History):
+1. **📋 แท็บคิวเพลง (Queue)**: แสดงรายการเพลงที่รอเล่น พร้อมปุ่มจัดการรายเพลง:
+   * [▶] เล่นเพลงนี้ทันที
+   * [▲] เลื่อนลำดับขึ้น
+   * [▼] เลื่อนลำดับลง
+   * [✕] ลบเพลงออกจากคิว
+   * ปุ่ม "ล้างคิวทั้งหมด" ด้านล่าง
+2. **📜 แท็บประวัติ (History)**: บันทึกเพลงที่เล่นจบหรือถูกข้าม เรียงตามลำดับเวลาจริง (1., 2., 3...) พร้อมปุ่ม **`+ เพิ่มเข้าคิว`** เพื่อนำเพลงกลับมาเล่นใหม่ได้ใน 1 คลิก
+
+---
+
+## 🛠️ 4. เทคโนโลยีที่ใช้ (Tech Stack)
+
+* **HTML5 / Single File**: รวม HTML, CSS และ JavaScript ทั้งหมดไว้ในไฟล์เดียว
+* **React 18 & Babel Standalone**: ขับเคลื่อน UI แบบ Reactive ผ่าน CDN
+* **Tailwind CSS**: จัดแต่งหน้าตาด้วย Utility Classes และ Custom Config ผ่าน CDN
+* **YouTube IFrame Player API**: จัดการการสตรีมวิดีโอและควบคุมสถานะการเล่น
+* **Web Audio API**: สร้างเสียงสังเคราะห์เอฟเฟกต์ 8-Bit (SFX) แบบเรียลไทม์
+* **LocalStorage**: บันทึกรายการคิว, ประวัติ และระดับเสียงไว้ในเบราว์เซอร์อัตโนมัติ
+
+---
+
+## 🚀 5. วิธีเปิดใช้งานและ Deploy
+
+* **เปิดใช้งานในเครื่อง**: ดับเบิลคลิกไฟล์ `index.html` หรือ `japanese-music-station.html` เปิดใน Chrome, Edge, Safari หรือ Firefox ได้ทันที
+* **Deploy บน Netlify ผ่าน GitHub**:
+  1. สร้าง Repository บน GitHub แล้วอัปโหลดไฟล์เป็นชื่อ `index.html`
+  2. เชื่อมต่อ Repository เข้ากับ Netlify (ปล่อย Build settings ว่างไว้)
+  3. เมื่อมีการแก้ไขไฟล์บน GitHub ระบบจะ Deploy เว็บเวอร์ชันใหม่ให้อัตโนมัติทันที
