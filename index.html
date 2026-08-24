@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Japanese Music Station | シティポップ・ステーション</title>
+  
+  <!-- Retro Pixel Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            skyTop: '#1F1A3A',
+            skyMid: '#5B3256',
+            skySunset: '#A2536A',
+            skyDusk: '#E08573',
+            bldgShadow: '#131021',
+            wallBase: '#2A2238',
+            warmLight: '#FFC061',
+            neonPink: '#F57D7C',
+            panelBg: 'rgba(29, 23, 40, 0.88)',
+            pixelBorder: '#3D2F4C',
+          },
+          fontFamily: {
+            header: ['"Press Start 2P"', 'monospace'],
+            body: ['"VT323"', 'monospace'],
+            sub: ['"Silkscreen"', 'monospace'],
+            jp: ['"DotGothic16"', '"VT323"', 'monospace'],
+          },
+          screens: {
+            'custom-lg': '900px',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React 18 & Babel Standalone via CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+
+  <style>
+    /* STYLING CONSTRAINTS: ZERO border-radius anywhere, pure pixel art */
+    *, *::before, *::after {
+      border-radius: 0 !important;
+      image-rendering: pixelated;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #131021;
+      color: #FFF;
+      font-family: 'VT323', monospace;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* Pixel Art Borders & Shadows */
+    .pixel-frame {
+      border: 3px solid #3D2F4C;
+      box-shadow: 4px 4px 0px #000;
+      background-color: rgba(29, 23, 40, 0.88);
+    }
+
+    .pixel-frame-inset {
+      border: 3px solid #3D2F4C;
+      box-shadow: inset 3px 3px 0px #131021, inset -3px -3px 0px #3D2F4C;
+      background-color: rgba(19, 16, 33, 0.95);
+    }
+
+    .pixel-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #3D2F4C;
+      box-shadow: 4px 4px 0px #000;
+      background-color: #2A2238;
+      color: #FFF;
+      cursor: pointer;
+      font-family: 'VT323', monospace;
+      font-size: 1.25rem;
+      letter-spacing: 0.05em;
+      transition: transform 0.05s steps(1), box-shadow 0.05s steps(1), background-color 0.05s steps(1);
+    }
+
+    .pixel-btn:hover {
+      background-color: #3D2F4C;
+      color: #FFC061;
+    }
+
+    .pixel-btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .pixel-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: 4px 4px 0px #000 !important;
+      background-color: #2A2238 !important;
+      color: #777 !important;
+    }
+
+    .pixel-btn-primary {
+      background-color: #E08573;
+      color: #131021;
+      border-color: #FFC061;
+      font-weight: bold;
+    }
+    .pixel-btn-primary:hover {
+      background-color: #FFC061;
+      color: #131021;
+    }
+
+    .pixel-btn-neon {
+      background-color: #F57D7C;
+      color: #131021;
+      border-color: #FFC061;
+      font-weight: bold;
+    }
+    .pixel-btn-neon:hover {
+      background-color: #FFA5A4;
+      color: #131021;
+    }
+
+    .pixel-btn-warning {
+      background-color: #FFC061;
+      color: #131021;
+      border-color: #E08573;
+    }
+    .pixel-btn-warning:hover {
+      background-color: #FFE0A3;
+      color: #131021;
+    }
+
+    .pixel-btn-danger {
+      background-color: #A2536A;
+      color: #FFF;
+      border-color: #F57D7C;
+    }
+    .pixel-btn-danger:hover {
+      background-color: #C46781;
+      color: #FFF;
+    }
+
+    .pixel-input {
+      border: 3px solid #3D2F4C;
+      background-color: #131021;
+      color: #FFC061;
+      font-family: 'VT323', monospace;
+      font-size: 1.25rem;
+      padding: 6px 12px;
+      box-shadow: inset 3px 3px 0px #000;
+      outline: none;
+    }
+    .pixel-input:focus {
+      border-color: #F57D7C;
+    }
+
+    /* Custom Retro Pixel Scrollbar */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #131021;
+      border-left: 2px solid #3D2F4C;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3D2F4C;
+      border: 2px solid #5B3256;
+      box-shadow: 2px 2px 0px #000;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #E08573;
+    }
+
+    /* CRT Scanline effect */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 4px, 6px 100%;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.65;
+    }
+
+    /* Step-based retro animations */
+    @keyframes marquee {
+      0% { transform: translateX(100%); }
+      100% { transform: translateX(-100%); }
+    }
+    .animate-marquee {
+      display: inline-block;
+      white-space: nowrap;
+      animation: marquee 16s linear infinite;
+    }
+
+    @keyframes pulseStep {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(1.02); }
+    }
+    .pulse-pixel {
+      animation: pulseStep 1.2s steps(4) infinite;
+    }
+
+    @keyframes cassetteRoll {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .animate-spin-steps {
+      animation: cassetteRoll 2.5s steps(8) infinite;
+    }
+
+    @keyframes catBop {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    .animate-dj-bop {
+      animation: catBop 0.6s steps(2) infinite;
+    }
+
+    @keyframes starBlink {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    .star-1 { animation: starBlink 1.8s steps(3) infinite; }
+    .star-2 { animation: starBlink 2.4s steps(4) infinite 0.6s; }
+    .star-3 { animation: starBlink 3.1s steps(3) infinite 1.2s; }
+  </style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between overflow-x-hidden selection:bg-neonPink selection:text-bldgShadow">
+
+  <!-- Background Japanese Dusk Cityscape SVG Layer -->
+  <div id="cityscape-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+  <!-- CRT Scanline Overlay (Toggleable via state) -->
+  <div id="crt-overlay" class="scanlines"></div>
+
+  <!-- React Root Container -->
+  <div id="root" class="relative z-10 min-h-screen flex flex-col"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // SFX Sound Generator (8-bit Web Audio Synthesizer)
+    class SoundFX {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+      }
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) this.ctx = new AudioContext();
+        }
+      }
+      playTone(freq, type, duration, vol = 0.1) {
+        if (!this.enabled) return;
+        try {
+          this.init();
+          if (!this.ctx) return;
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {
+          // ignore audio context policy before user gesture
+        }
+      }
+      click() { this.playTone(880, 'square', 0.05, 0.04); }
+      coin() {
+        this.playTone(987.77, 'square', 0.08, 0.06);
+        setTimeout(() => this.playTone(1318.51, 'square', 0.18, 0.06), 70);
+      }
+      delete() { this.playTone(220, 'sawtooth', 0.1, 0.05); }
+      switch() { this.playTone(523.25, 'triangle', 0.06, 0.05); }
+    }
+    const sfx = new SoundFX();
+
+    // Helper: Parse YouTube URL into Video ID
+    function extractVideoId(url) {
+      if (!url) return null;
+      const clean = url.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(clean)) return clean;
+      
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=)([^#\&\?]{11})/,
+        /(?:youtu\.be\/)([^#\&\?]{11})/,
+        /(?:youtube\.com\/embed\/)([^#\&\?]{11})/,
+        /(?:youtube\.com\/shorts\/)([^#\&\?]{11})/,
+        /(?:music\.youtube\.com\/watch\?v=)([^#\&\?]{11})/
+      ];
+      
+      for (const p of patterns) {
+        const match = clean.match(p);
+        if (match && match[1]) return match[1];
+      }
+      return null;
+    }
+
+    // Helper: Fetch Video Title via noembed oEmbed proxy
+    async function fetchVideoTitle(videoId) {
+      try {
+        const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${videoId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.title) return data.title;
+        }
+      } catch (err) {
+        console.warn('oEmbed fetch error:', err);
+      }
+      return `YouTube Video [${videoId}]`;
+    }
+
+    // Helper: Format Seconds to MM:SS
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return '00:00';
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // --- MAIN PARENT COMPONENT ---
+    function App() {
+      // DATA STRUCTURE (EXACT IMPLEMENTATION):
+      // queue: Array<Track>, currentTrack: Track | null, history: Array<Track>, isPlaying: bool, playerStatus: string, volume: number
+      const [queue, setQueue] = useState(() => {
+        const saved = localStorage.getItem('jms_queue_v2');
+        if (saved) {
+          try { return JSON.parse(saved); } catch (e) {}
+        }
+        return [];
+      });
+
+      const [currentTrack, setCurrentTrack] = useState(() => {
+        const saved = localStorage.getItem('jms_current_v2');
+        if (saved) {
+          try { return JSON.parse(saved); } catch (e) {}
+        }
+        return null;
+      });
+
+      const [history, setHistory] = useState(() => {
+        const saved = localStorage.getItem('jms_history_v2');
+        if (saved) {
+          try { return JSON.parse(saved); } catch (e) {}
+        }
+        return [];
+      });
+
+      const [isPlaying, setIsPlaying] = useState(false);
+      const [playerStatus, setPlayerStatus] = useState('empty'); // "playing" | "paused" | "empty"
+      const [volume, setVolume] = useState(() => {
+        const saved = localStorage.getItem('jms_volume_v2');
+        return saved ? Number(saved) : 80;
+      });
+
+      // Additional UI State
+      const [currentTime, setCurrentTime] = useState(0);
+      const [duration, setDuration] = useState(0);
+      const [isMuted, setIsMuted] = useState(false);
+      const [loopMode, setLoopMode] = useState('none'); // 'none' | 'one' | 'all'
+      const [playbackRate, setPlaybackRate] = useState(1);
+      const [ccEnabled, setCcEnabled] = useState(false);
+      const [crtEnabled, setCrtEnabled] = useState(true);
+      const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
+      const [toastMsg, setToastMsg] = useState(null);
+
+      // Refs to prevent stale closure in YouTube Player event callbacks
+      const queueRef = useRef(queue);
+      const currentTrackRef = useRef(currentTrack);
+      const historyRef = useRef(history);
+      const loopModeRef = useRef(loopMode);
+      const isPlayingRef = useRef(isPlaying);
+      const playerRef = useRef(null);
+      const isPlayerReady = useRef(false);
+      const timerRef = useRef(null);
+
+      useEffect(() => { queueRef.current = queue; }, [queue]);
+      useEffect(() => { currentTrackRef.current = currentTrack; }, [currentTrack]);
+      useEffect(() => { historyRef.current = history; }, [history]);
+      useEffect(() => { loopModeRef.current = loopMode; }, [loopMode]);
+      useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+
+      // Persist state
+      useEffect(() => { localStorage.setItem('jms_queue_v2', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { localStorage.setItem('jms_current_v2', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { localStorage.setItem('jms_history_v2', JSON.stringify(history)); }, [history]);
+      useEffect(() => { localStorage.setItem('jms_volume_v2', volume.toString()); }, [volume]);
+
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setTimeout(() => setToastMsg(null), 3200);
+      };
+
+      useEffect(() => {
+        const crt = document.getElementById('crt-overlay');
+        if (crt) crt.style.display = crtEnabled ? 'block' : 'none';
+      }, [crtEnabled]);
+
+      // Initialize YouTube API with full controls enabled (Settings Gear, CC button, etc.)
+      useEffect(() => {
+        window.onYouTubeIframeAPIReady = () => {
+          initYTPlayer();
+        };
+
+        if (window.YT && window.YT.Player) {
+          initYTPlayer();
+        } else {
+          const tag = document.createElement('script');
+          tag.src = 'https://www.youtube.com/iframe_api';
+          const firstScriptTag = document.getElementsByTagName('script')[0];
+          firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        }
+
+        return () => {
+          if (timerRef.current) clearInterval(timerRef.current);
+        };
+      }, []);
+
+      function initYTPlayer() {
+        if (playerRef.current) return;
+        try {
+          playerRef.current = new window.YT.Player('youtube-player-embed', {
+            height: '100%',
+            width: '100%',
+            videoId: currentTrackRef.current ? currentTrackRef.current.videoId : '',
+            playerVars: {
+              autoplay: 0,
+              controls: 1, // SHOW full YouTube controls (Gear Settings & CC button)
+              fs: 1,
+              rel: 0,
+              playsinline: 1,
+              enablejsapi: 1,
+              iv_load_policy: 3
+            },
+            events: {
+              onReady: onPlayerReady,
+              onStateChange: onPlayerStateChange,
+              onError: onPlayerError
+            }
+          });
+        } catch (e) {
+          console.error('YT init failed:', e);
+        }
+      }
+
+      function onPlayerReady(event) {
+        isPlayerReady.current = true;
+        event.target.setVolume(volume);
+        if (currentTrackRef.current) {
+          event.target.cueVideoById(currentTrackRef.current.videoId);
+          setPlayerStatus('paused');
+        }
+      }
+
+      function onPlayerStateChange(event) {
+        const state = event.data;
+        if (state === window.YT.PlayerState.PLAYING) {
+          setIsPlaying(true);
+          setPlayerStatus('playing');
+          
+          if (playerRef.current && playerRef.current.getVideoData) {
+            const data = playerRef.current.getVideoData();
+            if (data && data.title && currentTrackRef.current && (!currentTrackRef.current.title || currentTrackRef.current.title.startsWith('YouTube Video'))) {
+              setCurrentTrack(prev => prev ? { ...prev, title: data.title } : null);
+            }
+          }
+        } else if (state === window.YT.PlayerState.PAUSED) {
+          setIsPlaying(false);
+          setPlayerStatus('paused');
+        } else if (state === window.YT.PlayerState.ENDED) {
+          handleTrackEnded();
+        } else if (state === window.YT.PlayerState.CUED) {
+          setPlayerStatus(currentTrackRef.current ? 'paused' : 'empty');
+          setIsPlaying(false);
+        }
+      }
+
+      function onPlayerError(event) {
+        console.warn('YT Player Error Code:', event.data);
+        showToast(`⚠️ เพลงไม่สามารถเล่นได้ (Error ${event.data}) — กำลังข้ามไปยังเพลงถัดไป`);
+        setTimeout(() => {
+          handleNextTrack();
+        }, 1500);
+      }
+
+      // Progress bar ticker
+      useEffect(() => {
+        if (isPlaying) {
+          timerRef.current = setInterval(() => {
+            if (playerRef.current && isPlayerReady.current && playerRef.current.getCurrentTime) {
+              const cur = playerRef.current.getCurrentTime() || 0;
+              const dur = playerRef.current.getDuration() || 0;
+              setCurrentTime(cur);
+              setDuration(dur);
+            }
+          }, 300);
+        } else {
+          if (timerRef.current) clearInterval(timerRef.current);
+        }
+        return () => {
+          if (timerRef.current) clearInterval(timerRef.current);
+        };
+      }, [isPlaying]);
+
+      // Auto Advance on song end: Append played track to History in chronological order!
+      function handleTrackEnded() {
+        const currentMode = loopModeRef.current;
+        const cur = currentTrackRef.current;
+        const curQueue = queueRef.current;
+        const curHistory = historyRef.current;
+
+        if (currentMode === 'one' && cur && playerRef.current) {
+          playerRef.current.seekTo(0);
+          playerRef.current.playVideo();
+          return;
+        }
+
+        if (curQueue.length > 0) {
+          const next = curQueue[0];
+          const remQueue = curQueue.slice(1);
+          if (cur) {
+            // Append chronologically: Song 1 -> index 0 (ลำดับที่ 1), Song 2 -> index 1 (ลำดับที่ 2)
+            setHistory(prev => [...prev, cur]);
+          }
+          setCurrentTrack(next);
+          setQueue(remQueue);
+          playTrackInPlayer(next.videoId);
+        } else if (currentMode === 'all' && curHistory.length > 0) {
+          const allTracks = [...curHistory, ...(cur ? [cur] : [])];
+          if (allTracks.length > 0) {
+            const next = allTracks[0];
+            setCurrentTrack(next);
+            setQueue(allTracks.slice(1));
+            setHistory([]);
+            playTrackInPlayer(next.videoId);
+          }
+        } else {
+          if (cur) {
+            setHistory(prev => [...prev, cur]);
+          }
+          setCurrentTrack(null);
+          setIsPlaying(false);
+          setPlayerStatus('empty');
+          setCurrentTime(0);
+          setDuration(0);
+        }
+      }
+
+      function playTrackInPlayer(videoId) {
+        if (playerRef.current && isPlayerReady.current) {
+          playerRef.current.loadVideoById(videoId);
+          playerRef.current.playVideo();
+          setIsPlaying(true);
+          setPlayerStatus('playing');
+        }
+      }
+
+      // --- TRANSPORT ACTIONS ---
+      const handlePlayPause = () => {
+        sfx.click();
+        if (!currentTrack) {
+          if (queue.length > 0) {
+            handleNextTrack();
+          } else {
+            showToast('⚠️ กรุณาวางลิงก์ YouTube และกด "เพิ่มคิว" ก่อนเริ่มเล่น');
+          }
+          return;
+        }
+
+        if (playerRef.current && isPlayerReady.current) {
+          if (isPlaying) {
+            playerRef.current.pauseVideo();
+            setIsPlaying(false);
+            setPlayerStatus('paused');
+          } else {
+            playerRef.current.playVideo();
+            setIsPlaying(true);
+            setPlayerStatus('playing');
+          }
+        }
+      };
+
+      const handleNextTrack = () => {
+        sfx.click();
+        if (queue.length === 0) {
+          showToast('📋 ไม่มีเพลงถัดไปในคิว');
+          return;
+        }
+        const next = queue[0];
+        const remQueue = queue.slice(1);
+        if (currentTrack) {
+          // Append chronologically to history
+          setHistory(prev => [...prev, currentTrack]);
+        }
+        setCurrentTrack(next);
+        setQueue(remQueue);
+        playTrackInPlayer(next.videoId);
+        showToast(`▶ กำลังเล่น: ${next.title || next.videoId}`);
+      };
+
+      const handlePrevTrack = () => {
+        sfx.click();
+        if (currentTime > 3 && playerRef.current && isPlayerReady.current) {
+          playerRef.current.seekTo(0);
+          return;
+        }
+
+        if (history.length > 0) {
+          // Pop the last played track from history
+          const lastIdx = history.length - 1;
+          const prev = history[lastIdx];
+          const remHistory = history.slice(0, lastIdx);
+          if (currentTrack) {
+            setQueue(q => [currentTrack, ...q]);
+          }
+          setCurrentTrack(prev);
+          setHistory(remHistory);
+          playTrackInPlayer(prev.videoId);
+          showToast(`⏮ ย้อนกลับ: ${prev.title || prev.videoId}`);
+        } else if (currentTrack && playerRef.current) {
+          playerRef.current.seekTo(0);
+        } else {
+          showToast('ℹ️ ไม่มีประวัติเพลงก่อนหน้า');
+        }
+      };
+
+      const handleSeek = (e) => {
+        if (!duration || !playerRef.current || !isPlayerReady.current) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickPos = (e.clientX - rect.left) / rect.width;
+        const targetSec = clickPos * duration;
+        playerRef.current.seekTo(targetSec, true);
+        setCurrentTime(targetSec);
+        sfx.switch();
+      };
+
+      const handleVolumeChange = (newVol) => {
+        const val = Math.max(0, Math.min(100, Number(newVol)));
+        setVolume(val);
+        if (playerRef.current && isPlayerReady.current) {
+          playerRef.current.setVolume(val);
+          if (val > 0 && isMuted) {
+            playerRef.current.unMute();
+            setIsMuted(false);
+          }
+        }
+      };
+
+      const handleToggleMute = () => {
+        sfx.click();
+        if (playerRef.current && isPlayerReady.current) {
+          if (isMuted) {
+            playerRef.current.unMute();
+            setIsMuted(false);
+          } else {
+            playerRef.current.mute();
+            setIsMuted(true);
+          }
+        }
+      };
+
+      const handleToggleLoop = () => {
+        sfx.click();
+        const nextMode = loopMode === 'none' ? 'one' : loopMode === 'one' ? 'all' : 'none';
+        setLoopMode(nextMode);
+        showToast(nextMode === 'one' ? '🔂 โหมดวนซ้ำเพลงเดียว' : nextMode === 'all' ? '🔁 โหมดวนซ้ำคิวทั้งหมด' : '➡️ ปิดโหมดวนซ้ำ');
+      };
+
+      const handleShuffleQueue = () => {
+        sfx.coin();
+        if (queue.length <= 1) {
+          showToast('ℹ️ ต้องมีอย่างน้อย 2 เพลงในคิวเพื่อสลับ');
+          return;
+        }
+        const shuffled = [...queue].sort(() => Math.random() - 0.5);
+        setQueue(shuffled);
+        showToast('🔀 สลับลำดับคิวเพลงเรียบร้อย!');
+      };
+
+      const handleToggleCC = () => {
+        sfx.click();
+        if (playerRef.current && isPlayerReady.current) {
+          try {
+            if (!ccEnabled) {
+              if (playerRef.current.loadModule) {
+                playerRef.current.loadModule('captions');
+              }
+              setCcEnabled(true);
+              showToast('💬 เปิดคำบรรยาย (CC Enabled)');
+            } else {
+              if (playerRef.current.unloadModule) {
+                playerRef.current.unloadModule('captions');
+              }
+              setCcEnabled(false);
+              showToast('💬 ปิดคำบรรยาย (CC Disabled)');
+            }
+          } catch (e) {
+            console.warn('CC toggle error:', e);
+            setCcEnabled(!ccEnabled);
+          }
+        } else {
+          setCcEnabled(!ccEnabled);
+        }
+      };
+
+      // --- QUEUE MUTATION ACTIONS ---
+      const addToQueue = async (urlOrId) => {
+        const videoId = extractVideoId(urlOrId);
+        if (!videoId) {
+          showToast('❌ ไม่พบ YouTube Video ID ที่ถูกต้อง กรุณาตรวจสอบ URL');
+          return false;
+        }
+
+        sfx.coin();
+        showToast('🔍 กำลังดึงข้อมูลเพลง...');
+        const title = await fetchVideoTitle(videoId);
+
+        const newTrack = {
+          id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          videoId: videoId,
+          title: title || `YouTube Video [${videoId}]`,
+          addedAt: Date.now()
+        };
+
+        setQueue(prev => [...prev, newTrack]);
+        showToast(`➕ เพิ่มเข้าคิวเรียบร้อย: ${newTrack.title}`);
+        return true;
+      };
+
+      // Requeue track from History
+      const handleRequeueFromHistory = (track) => {
+        sfx.coin();
+        const newTrack = {
+          id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          videoId: track.videoId,
+          title: track.title,
+          addedAt: Date.now()
+        };
+        setQueue(prev => [...prev, newTrack]);
+        showToast(`➕ เพิ่ม "${newTrack.title || newTrack.videoId}" กลับเข้าคิวแล้ว`);
+      };
+
+      const playNowFromQueue = (index) => {
+        sfx.click();
+        if (index < 0 || index >= queue.length) return;
+        const selected = queue[index];
+        const updatedQueue = queue.filter((_, idx) => idx !== index);
+        
+        if (currentTrack) {
+          setHistory(prev => [...prev, currentTrack]);
+        }
+        setCurrentTrack(selected);
+        setQueue(updatedQueue);
+        playTrackInPlayer(selected.videoId);
+        showToast(`▶ กำลังเล่น: ${selected.title}`);
+      };
+
+      const moveQueueItem = (index, direction) => {
+        sfx.switch();
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= queue.length) return;
+        
+        const newQ = [...queue];
+        const temp = newQ[index];
+        newQ[index] = newQ[targetIndex];
+        newQ[targetIndex] = temp;
+        setQueue(newQ);
+      };
+
+      const removeQueueItem = (index) => {
+        sfx.delete();
+        setQueue(prev => prev.filter((_, idx) => idx !== index));
+        showToast('🗑 ลบเพลงออกจากคิวแล้ว');
+      };
+
+      const clearAllQueue = () => {
+        sfx.delete();
+        if (queue.length === 0) return;
+        setQueue([]);
+        showToast('🗑 ล้างคิวเพลงทั้งหมดเรียบร้อย');
+      };
+
+      const clearHistory = () => {
+        sfx.delete();
+        setHistory([]);
+        showToast('🗑 ล้างประวัติการเล่นเรียบร้อย');
+      };
+
+      return (
+        <div className="flex flex-col min-h-screen">
+          
+          {/* Header Navigation Bar */}
+          <header className="pixel-frame m-3 mb-0 p-3 flex flex-wrap items-center justify-between gap-3 bg-panelBg">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-neonPink border-2 border-warmLight flex items-center justify-center text-bldgShadow font-header text-xl font-bold shadow-[2px_2px_0px_#000]">
+                J
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="font-header text-sm sm:text-base text-neonPink tracking-wider">
+                    JAPANESE MUSIC STATION
+                  </h1>
+                  <span className="text-xs bg-skyMid px-1.5 py-0.5 border border-pixelBorder text-warmLight font-sub">
+                    PIXEL × CITY POP
+                  </span>
+                </div>
+                <p className="text-xs text-skySunset font-jp tracking-wide">
+                  シティポップ・ジュークボックス — 80s Dusk Alleyway DJ Booth
+                </p>
+              </div>
+            </div>
+
+            {/* Utility Toggles */}
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setCrtEnabled(!crtEnabled)}
+                className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${crtEnabled ? 'bg-neonPink text-bldgShadow font-bold' : 'bg-wallBase text-gray-400'}`}
+                title="เปิด/ปิดเส้นสแกน CRT"
+              >
+                📺 CRT {crtEnabled ? 'ON' : 'OFF'}
+              </button>
+
+              <button 
+                onClick={() => {
+                  sfx.enabled = !sfx.enabled;
+                  showToast(sfx.enabled ? '🔊 เปิดเอฟเฟกต์เสียง 8-Bit' : '🔇 ปิดเอฟเฟกต์เสียง');
+                }}
+                className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${sfx.enabled ? 'text-warmLight bg-wallBase' : 'text-gray-500 bg-wallBase'}`}
+                title="เปิด/ปิดเสียง 8-Bit Sound FX"
+              >
+                {sfx.enabled ? '🔊 SFX' : '🔇 SFX'}
+              </button>
+            </div>
+          </header>
+
+          {/* Toast Notification Banner */}
+          {toastMsg && (
+            <div className="fixed top-20 right-6 z-50 pixel-frame border-warmLight bg-bldgShadow text-warmLight px-4 py-2 text-base font-body shadow-[4px_4px_0px_#000] pulse-pixel">
+              {toastMsg}
+            </div>
+          )}
+
+          {/* Main 2-Column Grid Workspace (65% : 35% on Desktop, Stacks below 900px) */}
+          <main className="flex-1 p-3 flex flex-col custom-lg:flex-row gap-3 max-w-[1700px] w-full mx-auto">
+            
+            {/* LEFT PANEL (65% Width on Desktop) */}
+            <section className="w-full custom-lg:w-[65%] flex flex-col gap-3">
+              <LeftPlayerPanel 
+                currentTrack={currentTrack}
+                isPlaying={isPlaying}
+                playerStatus={playerStatus}
+                volume={volume}
+                isMuted={isMuted}
+                currentTime={currentTime}
+                duration={duration}
+                loopMode={loopMode}
+                playbackRate={playbackRate}
+                ccEnabled={ccEnabled}
+                queueLength={queue.length}
+                historyLength={history.length}
+                onPlayPause={handlePlayPause}
+                onNext={handleNextTrack}
+                onPrev={handlePrevTrack}
+                onSeek={handleSeek}
+                onVolumeChange={handleVolumeChange}
+                onToggleMute={handleToggleMute}
+                onToggleLoop={handleToggleLoop}
+                onToggleCC={handleToggleCC}
+                onAddTrack={addToQueue}
+                onClearQueue={clearAllQueue}
+                onShuffleQueue={handleShuffleQueue}
+                onSetPlaybackRate={(rate) => {
+                  setPlaybackRate(rate);
+                  if (playerRef.current && isPlayerReady.current) {
+                    playerRef.current.setPlaybackRate(rate);
+                  }
+                  showToast(`⚡ ความเร็ว: ${rate}x`);
+                }}
+              />
+            </section>
+
+            {/* RIGHT PANEL (35% Width on Desktop) */}
+            <section className="w-full custom-lg:w-[35%] flex flex-col gap-3">
+              <RightQueuePanel 
+                queue={queue}
+                history={history}
+                currentTrack={currentTrack}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                onPlayNow={playNowFromQueue}
+                onMove={moveQueueItem}
+                onRemove={removeQueueItem}
+                onClearAll={clearAllQueue}
+                onClearHistory={clearHistory}
+                onRequeue={handleRequeueFromHistory}
+              />
+            </section>
+          </main>
+
+          {/* Footer Status Bar */}
+          <footer className="pixel-frame m-3 mt-0 p-2 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-2 bg-panelBg font-sub">
+            <div className="flex items-center gap-3">
+              <span className="inline-block w-2.5 h-2.5 bg-neonPink border border-warmLight"></span>
+              <span>STATION STATUS: <strong className="text-warmLight">{playerStatus.toUpperCase()}</strong></span>
+              <span className="text-gray-600">|</span>
+              <span>QUEUE: <strong className="text-white">{queue.length} TRACKS</strong></span>
+            </div>
+            <div className="text-skyDusk flex items-center gap-2">
+              <span>PIXEL ART × CITY POP DJ BOOTH</span>
+              <span className="text-warmLight font-jp">「夜のドライブ・ミュージック」</span>
+            </div>
+          </footer>
+        </div>
+      );
+    }
+
+    // --- LEFT PANEL COMPONENT (Player, Now Playing, URL Input, Transport Controls) ---
+    function LeftPlayerPanel({
+      currentTrack,
+      isPlaying,
+      playerStatus,
+      volume,
+      isMuted,
+      currentTime,
+      duration,
+      loopMode,
+      playbackRate,
+      ccEnabled,
+      queueLength,
+      historyLength,
+      onPlayPause,
+      onNext,
+      onPrev,
+      onSeek,
+      onVolumeChange,
+      onToggleMute,
+      onToggleLoop,
+      onToggleCC,
+      onAddTrack,
+      onClearQueue,
+      onShuffleQueue,
+      onSetPlaybackRate
+    }) {
+      const [inputUrl, setInputUrl] = useState('');
+      const [isAdding, setIsAdding] = useState(false);
+
+      const handleAddSubmit = async (e) => {
+        e.preventDefault();
+        if (!inputUrl.trim()) return;
+        setIsAdding(true);
+        const ok = await onAddTrack(inputUrl.trim());
+        if (ok) setInputUrl('');
+        setIsAdding(false);
+      };
+
+      const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+
+      return (
+        <div className="flex flex-col gap-3">
+          
+          {/* 16:9 YouTube Screen + DJ Frame */}
+          <div className="pixel-frame p-3 bg-panelBg flex flex-col">
+            <div className="flex items-center justify-between mb-2 text-xs font-header text-warmLight">
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-2.5 h-2.5 bg-neonPink animate-pulse"></span>
+                <span>DJ BOOTH SCREEN (16:9)</span>
+              </div>
+              <span className="text-skyDusk font-jp text-xs">
+                {isPlaying ? '● ON AIR / 生放送中' : '■ STANDBY / 待機中'}
+              </span>
+            </div>
+
+            {/* Video Container (Strict 16:9 Aspect Ratio) */}
+            <div className="relative w-full pb-[56.25%] pixel-frame-inset bg-bldgShadow overflow-hidden group">
+              
+              {/* Actual YouTube IFrame Mounting Element */}
+              <div id="youtube-player-embed" className="absolute inset-0 w-full h-full"></div>
+
+              {/* Pixel Art Screen Overlay / Idle Graphic when empty */}
+              {playerStatus === 'empty' && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-bldgShadow/90 z-20 p-4 text-center">
+                  <div className="text-4xl sm:text-6xl mb-2 font-header text-neonPink drop-shadow-[3px_3px_0px_#000]">
+                    📼 80s
+                  </div>
+                  <div className="font-header text-xs sm:text-sm text-warmLight mb-1">
+                    JAPANESE MUSIC STATION
+                  </div>
+                  <p className="font-body text-base sm:text-lg text-skyDusk max-w-md">
+                    วางลิงก์ YouTube ด้านล่างและกด "เพิ่มคิว" เพื่อเริ่มสร้างเพลย์ลิสต์ของคุณ
+                  </p>
+                </div>
+              )}
+
+              {/* Animated DJ Cat & Cassette Indicator in Corner (Non-blocking) */}
+              {isPlaying && (
+                <div className="absolute top-2 right-2 bg-bldgShadow/85 border-2 border-pixelBorder px-2.5 py-1 flex items-center gap-2 z-10 pointer-events-none">
+                  <span className="inline-block text-base animate-dj-bop">🐱🎧</span>
+                  <span className="inline-block text-neonPink text-sm animate-spin-steps">💽</span>
+                  <span className="text-xs text-warmLight font-sub">ON AIR</span>
+                </div>
+              )}
+            </div>
+
+            {/* Pixel Equalizer / Visualizer Bar */}
+            <div className="mt-2.5 pt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-3">
+              <div className="flex items-end gap-1 h-6 w-36 px-1.5 bg-bldgShadow border-2 border-pixelBorder">
+                {[40, 75, 90, 60, 100, 45, 80, 65, 95, 50, 85, 70, 90, 55, 80, 60].map((height, i) => (
+                  <div 
+                    key={i}
+                    className="flex-1 bg-neonPink transition-all"
+                    style={{
+                      height: isPlaying ? `${(Math.sin((Date.now()/180) + i * 0.8) * 35 + height/2 + 25)}%` : '15%',
+                      backgroundColor: i % 2 === 0 ? '#F57D7C' : '#FFC061'
+                    }}
+                  ></div>
+                ))}
+              </div>
+
+              {/* Status Tags */}
+              <div className="flex items-center gap-2 text-xs font-sub">
+                <span className="px-2 py-0.5 bg-wallBase border border-pixelBorder text-gray-300">
+                  RATE: {playbackRate}x
+                </span>
+                <span className="px-2 py-0.5 bg-wallBase border border-pixelBorder text-warmLight">
+                  VOL: {isMuted ? 'MUTED' : `${volume}%`}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* NOW PLAYING INFO BAR */}
+          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-skyDusk font-header">
+              <div className="flex items-center gap-2">
+                <span className="text-neonPink">📻 NOW PLAYING</span>
+                {currentTrack && (
+                  <span className="text-gray-400 font-body text-sm font-normal">
+                    [ID: {currentTrack.videoId}]
+                  </span>
+                )}
+              </div>
+              <div className="text-warmLight font-body text-base">
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </div>
+            </div>
+
+            {/* Marquee Title Container */}
+            <div className="pixel-frame-inset p-2 bg-bldgShadow overflow-hidden whitespace-nowrap">
+              {currentTrack ? (
+                <div className="font-jp text-lg sm:text-xl text-warmLight font-bold animate-marquee">
+                  🎵 {currentTrack.title || `YouTube Video [${currentTrack.videoId}]`} ─── 80s Retro City Pop FM 98.6 ───
+                </div>
+              ) : (
+                <div className="font-body text-base text-gray-500 italic">
+                  ⏸ ไม่ได้เล่นเพลงใดอยู่ (เลือกเพลงจากคิวหรือกด Play เพื่อเริ่ม)
+                </div>
+              )}
+            </div>
+
+            {/* Interactive Pixel Progress Bar */}
+            <div 
+              onClick={onSeek}
+              className="relative w-full h-4 bg-bldgShadow border-2 border-pixelBorder cursor-pointer shadow-[inset_2px_2px_0px_#000]"
+              title="คลิกเพื่อเลื่อนเวลาเพลง"
+            >
+              {/* Filled Progress */}
+              <div 
+                className="h-full bg-neonPink border-r-2 border-warmLight transition-all"
+                style={{ width: `${progressPercent}%` }}
+              ></div>
+
+              {/* Pixel Scrubber Head */}
+              {duration > 0 && (
+                <div 
+                  className="absolute top-[-4px] w-3 h-5 bg-warmLight border-2 border-bldgShadow shadow-[1px_1px_0px_#000]"
+                  style={{ left: `calc(${progressPercent}% - 6px)` }}
+                ></div>
+              )}
+            </div>
+          </div>
+
+          {/* URL INPUT + "เพิ่มคิว" (Add) BUTTON */}
+          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-header text-skySunset">
+              <span>➕ เพิ่มเพลงเข้าคิว (ADD YOUTUBE URL)</span>
+              <span className="text-gray-400 font-body text-sm">รองรับ youtube.com, youtu.be, shorts</span>
+            </div>
+
+            <form onSubmit={handleAddSubmit} className="flex flex-col sm:flex-row gap-2">
+              <input 
+                type="text"
+                value={inputUrl}
+                onChange={(e) => setInputUrl(e.target.value)}
+                placeholder="วางลิงก์ YouTube (เช่น https://www.youtube.com/watch?v=...)..."
+                className="pixel-input flex-1 w-full text-base sm:text-lg"
+              />
+              <button 
+                type="submit"
+                disabled={isAdding || !inputUrl.trim()}
+                className="pixel-btn pixel-btn-primary px-5 py-2 text-lg sm:text-xl shrink-0"
+              >
+                {isAdding ? '⏳ กำลังเพิ่ม...' : '📥 เพิ่มคิว'}
+              </button>
+            </form>
+          </div>
+
+          {/* TRANSPORT CONTROLS & AUDIO SETTINGS */}
+          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              
+              {/* Primary Playback Buttons */}
+              <div className="flex flex-wrap items-center gap-2">
+                
+                {/* PREV */}
+                <button 
+                  onClick={onPrev}
+                  className="pixel-btn px-3.5 py-2 text-xl"
+                  title="เพลงก่อนหน้า / เริ่มใหม่ (Prev)"
+                >
+                  ⏮
+                </button>
+
+                {/* PLAY / PAUSE */}
+                <button 
+                  onClick={onPlayPause}
+                  className={`pixel-btn ${isPlaying ? 'pixel-btn-warning' : 'pixel-btn-neon'} px-6 py-2 text-2xl font-bold`}
+                  title={isPlaying ? 'หยุดชั่วคราว (Pause)' : 'เล่นเพลง (Play)'}
+                >
+                  {isPlaying ? '⏸ PAUSE' : '▶ PLAY'}
+                </button>
+
+                {/* NEXT */}
+                <button 
+                  onClick={onNext}
+                  disabled={queueLength === 0}
+                  className="pixel-btn px-3.5 py-2 text-xl"
+                  title="เพลงถัดไป (Next)"
+                >
+                  ⏭
+                </button>
+
+                {/* LOOP MODE */}
+                <button 
+                  onClick={onToggleLoop}
+                  className={`pixel-btn px-3 py-2 text-base ${loopMode !== 'none' ? 'bg-neonPink text-bldgShadow font-bold' : ''}`}
+                  title={`โหมดวนซ้ำ: ${loopMode}`}
+                >
+                  {loopMode === 'one' ? '🔂 1' : loopMode === 'all' ? '🔁 ALL' : '➡️ OFF'}
+                </button>
+
+                {/* SHUFFLE */}
+                <button 
+                  onClick={onShuffleQueue}
+                  disabled={queueLength <= 1}
+                  className="pixel-btn px-3 py-2 text-base"
+                  title="สลับคิวเพลง (Shuffle)"
+                >
+                  🔀
+                </button>
+
+                {/* CC SUBTITLES TOGGLE BUTTON */}
+                <button 
+                  onClick={onToggleCC}
+                  className={`pixel-btn px-3 py-2 text-base ${ccEnabled ? 'bg-warmLight text-bldgShadow font-bold' : 'bg-wallBase text-gray-300'}`}
+                  title="เปิด/ปิดคำบรรยาย (CC Subtitles)"
+                >
+                  💬 CC
+                </button>
+              </div>
+
+              {/* Speed Controller */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs font-header text-skySunset mr-1">SPEED:</span>
+                {[0.75, 1, 1.25, 1.5].map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => onSetPlaybackRate(rate)}
+                    className={`pixel-btn px-2 py-1 text-xs ${playbackRate === rate ? 'bg-warmLight text-bldgShadow font-bold' : 'bg-wallBase text-gray-300'}`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Volume Control Slider */}
+            <div className="pt-2 border-t-2 border-pixelBorder flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2 flex-1 max-w-sm">
+                <button 
+                  onClick={onToggleMute}
+                  className="pixel-btn px-2.5 py-1 text-base text-warmLight"
+                  title={isMuted ? 'เปิดเสียง' : 'ปิดเสียง'}
+                >
+                  {isMuted || volume === 0 ? '🔇' : volume < 50 ? '🔉' : '🔊'}
+                </button>
+
+                <div className="flex-1 flex items-center gap-2">
+                  <span className="text-xs font-header text-gray-400">VOL</span>
+                  <input 
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => onVolumeChange(e.target.value)}
+                    className="w-full h-3 bg-bldgShadow accent-neonPink cursor-pointer border-2 border-pixelBorder"
+                  />
+                  <span className="text-sm font-body text-warmLight w-8 text-right">
+                    {isMuted ? '0' : volume}%
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={onClearQueue}
+                  disabled={queueLength === 0}
+                  className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
+                  title="ล้างคิวเพลงทั้งหมด"
+                >
+                  🗑 ล้างคิว ({queueLength})
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      );
+    }
+
+    // --- RIGHT PANEL COMPONENT (Queue List & Playback History) ---
+    function RightQueuePanel({
+      queue,
+      history,
+      currentTrack,
+      activeTab,
+      setActiveTab,
+      onPlayNow,
+      onMove,
+      onRemove,
+      onClearAll,
+      onClearHistory,
+      onRequeue
+    }) {
+      return (
+        <div className="pixel-frame p-3 bg-panelBg flex flex-col h-full min-h-[500px]">
+          
+          {/* Panel Header & Navigation Tabs */}
+          <div className="flex items-center justify-between border-b-2 border-pixelBorder pb-2 mb-2">
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => { sfx.switch(); setActiveTab('queue'); }}
+                className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'queue' ? 'pixel-btn-neon' : 'bg-wallBase text-gray-300'}`}
+              >
+                📋 คิวเพลง ({queue.length})
+              </button>
+              
+              <button 
+                onClick={() => { sfx.switch(); setActiveTab('history'); }}
+                className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'history' ? 'pixel-btn-warning' : 'bg-wallBase text-gray-300'}`}
+              >
+                📜 ประวัติ ({history.length})
+              </button>
+            </div>
+          </div>
+
+          {/* TAB 1: QUEUE LIST */}
+          {activeTab === 'queue' && (
+            <div className="flex flex-col flex-1 justify-between">
+              
+              {/* Queue Items Container */}
+              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
+                {queue.length === 0 ? (
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
+                    <div className="text-4xl mb-2">📼</div>
+                    <div className="font-header text-xs text-warmLight mb-1">
+                      คิวเพลงว่างอยู่
+                    </div>
+                    <p className="font-body text-base text-gray-400">
+                      วาง URL เพลง YouTube ในช่องด้านซ้ายแล้วกด "เพิ่มคิว" เพื่อเพิ่มเพลง
+                    </p>
+                  </div>
+                ) : (
+                  queue.map((track, index) => (
+                    <div 
+                      key={track.id}
+                      className="pixel-frame p-2 bg-wallBase/90 hover:bg-skyMid/50 transition-colors flex items-center justify-between gap-2 group"
+                    >
+                      {/* Left: Index + Play Button + Info */}
+                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                        
+                        {/* Index Badge */}
+                        <span className="w-6 text-center font-header text-xs text-skySunset shrink-0">
+                          #{index + 1}
+                        </span>
+
+                        {/* Direct Play Button */}
+                        <button 
+                          onClick={() => onPlayNow(index)}
+                          className="pixel-btn px-2 py-0.5 text-xs bg-warmLight text-bldgShadow hover:bg-white font-bold shrink-0"
+                          title="เล่นเพลงนี้ทันที"
+                        >
+                          ▶
+                        </button>
+
+                        {/* Title & Video ID */}
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                          <span className="font-jp text-base text-white truncate font-medium group-hover:text-warmLight" title={track.title}>
+                            {track.title || `YouTube Video [${track.videoId}]`}
+                          </span>
+                          <span className="text-xs text-gray-400 font-body">
+                            ID: {track.videoId} • เพิ่มเมื่อ {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Right: Controls [▲] [▼] [✕] */}
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* Move Up */}
+                        <button 
+                          onClick={() => onMove(index, -1)}
+                          disabled={index === 0}
+                          className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
+                          title="เลื่อนขึ้น"
+                        >
+                          ▲
+                        </button>
+
+                        {/* Move Down */}
+                        <button 
+                          onClick={() => onMove(index, 1)}
+                          disabled={index === queue.length - 1}
+                          className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
+                          title="เลื่อนลง"
+                        >
+                          ▼
+                        </button>
+
+                        {/* Delete Track */}
+                        <button 
+                          onClick={() => onRemove(index)}
+                          className="pixel-btn pixel-btn-danger px-2 py-0.5 text-xs"
+                          title="ลบเพลงออกจากคิว"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Bottom Actions for Queue */}
+              <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
+                <span className="text-xs font-sub text-gray-400">
+                  ทั้งหมด {queue.length} เพลง
+                </span>
+                <button 
+                  onClick={onClearAll}
+                  disabled={queue.length === 0}
+                  className="pixel-btn pixel-btn-danger px-4 py-1.5 text-base font-bold"
+                >
+                  🗑 ล้างคิวทั้งหมด (Clear All)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: PLAYBACK HISTORY (Chronological numbering: 1., 2., 3....) */}
+          {activeTab === 'history' && (
+            <div className="flex flex-col flex-1 justify-between">
+              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
+                {history.length === 0 ? (
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
+                    <div className="text-4xl mb-2">📜</div>
+                    <div className="font-header text-xs text-gray-400 mb-1">
+                      ยังไม่มีประวัติการเล่นเพลง
+                    </div>
+                    <p className="font-body text-sm text-gray-500">
+                      เพลงที่เล่นจบหรือถูกข้ามจะปรากฏในหน้านี้ เรียงตามลำดับที่เล่น
+                    </p>
+                  </div>
+                ) : (
+                  history.map((track, index) => (
+                    <div 
+                      key={track.id + '_' + index}
+                      className="pixel-frame p-2 bg-wallBase/70 flex items-center justify-between gap-2"
+                    >
+                      <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
+                        {/* Chronological order number: 1., 2., 3. */}
+                        <span className="text-sm text-warmLight font-header w-8 shrink-0">
+                          {index + 1}.
+                        </span>
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                          <span className="font-jp text-base text-gray-200 truncate font-medium" title={track.title}>
+                            {track.title || track.videoId}
+                          </span>
+                          <span className="text-xs text-gray-400 font-body">
+                            ID: {track.videoId}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Re-add button: Functional and connected! */}
+                      <button 
+                        onClick={() => onRequeue(track)}
+                        className="pixel-btn pixel-btn-primary px-2.5 py-1 text-xs shrink-0"
+                        title="เพิ่มเพลงนี้กลับเข้าคิว"
+                      >
+                        + เพิ่มเข้าคิว
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Bottom Actions for History */}
+              <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
+                <span className="text-xs font-sub text-gray-400">
+                  ประวัติ {history.length} รายการ
+                </span>
+                <button 
+                  onClick={onClearHistory}
+                  disabled={history.length === 0}
+                  className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
+                >
+                  🗑 ล้างประวัติ (Clear History)
+                </button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    // Render Full React App
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+
+  </script>
+
+  <!-- Procedural Detailed 16/32-Bit Pixel Art Japanese Dusk Cityscape (SVG Generator) -->
+  <script>
+    function renderPixelDuskAlley() {
+      const bg = document.getElementById('cityscape-bg');
+      if (!bg) return;
+
+      const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" class="w-full h-full object-cover" preserveAspectRatio="xMidYMid slice" style="image-rendering: pixelated;">
+        <defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1F1A3A" />
+            <stop offset="35%" stop-color="#5B3256" />
+            <stop offset="65%" stop-color="#A2536A" />
+            <stop offset="90%" stop-color="#E08573" />
+            <stop offset="100%" stop-color="#FFC061" />
+          </linearGradient>
+
+          <linearGradient id="fujiGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#A2536A" />
+            <stop offset="40%" stop-color="#3D2F4C" />
+            <stop offset="100%" stop-color="#1F1A3A" />
+          </linearGradient>
+        </defs>
+
+        <rect width="1920" height="1080" fill="url(#skyGrad)" />
+
+        <g fill="#FFF">
+          <rect x="150" y="80" width="6" height="6" class="star-1" fill="#FFC061" />
+          <rect x="147" y="83" width="12" height="2" class="star-1" fill="#FFC061" />
+          <rect x="152" y="78" width="2" height="12" class="star-1" fill="#FFC061" />
+
+          <rect x="420" y="140" width="4" height="4" class="star-2" fill="#F57D7C" />
+          <rect x="780" y="60" width="6" height="6" class="star-3" fill="#FFF" />
+          <rect x="777" y="63" width="12" height="2" class="star-3" fill="#FFF" />
+          <rect x="782" y="58" width="2" height="12" class="star-3" fill="#FFF" />
+
+          <rect x="1150" y="110" width="4" height="4" class="star-1" fill="#FFC061" />
+          <rect x="1420" y="75" width="5" height="5" class="star-2" fill="#FFF" />
+          <rect x="1750" y="130" width="6" height="6" class="star-3" fill="#F57D7C" />
+          
+          <rect x="230" y="190" width="3" height="3" class="star-2" />
+          <rect x="340" y="70" width="3" height="3" class="star-3" />
+          <rect x="620" y="160" width="3" height="3" class="star-1" />
+          <rect x="950" y="100" width="4" height="4" class="star-2" />
+          <rect x="1300" y="180" width="3" height="3" class="star-3" />
+          <rect x="1600" y="90" width="3" height="3" class="star-1" />
+        </g>
+
+        <g id="mt-fuji">
+          <polygon points="680,680 960,340 1020,340 1300,680" fill="url(#fujiGrad)" />
+          <polygon points="920,390 960,340 1020,340 1060,390 1030,410 1000,395 980,415 950,400" fill="#E08573" opacity="0.6" />
+        </g>
+
+        <g fill="#2A1B38">
+          <rect x="0" y="520" width="140" height="350" />
+          <rect x="120" y="560" width="110" height="300" />
+          <rect x="210" y="490" width="90" height="380" />
+          <rect x="290" y="540" width="160" height="320" />
+          <rect x="440" y="580" width="120" height="300" />
+          
+          <polygon points="560,700 585,420 595,420 620,700" fill="#A2536A" />
+          <rect x="588" y="380" width="4" height="40" fill="#F57D7C" />
+          <rect x="575" y="520" width="30" height="8" fill="#F57D7C" />
+          <rect x="570" y="600" width="40" height="12" fill="#F57D7C" />
+
+          <rect x="1320" y="540" width="130" height="350" />
+          <rect x="1430" y="500" width="100" height="380" />
+          <rect x="1510" y="550" width="140" height="330" />
+          <rect x="1630" y="480" width="120" height="400" />
+          <rect x="1730" y="530" width="190" height="350" />
+        </g>
+
+        <g fill="#FFC061" opacity="0.75">
+          <rect x="30" y="540" width="6" height="8" />
+          <rect x="50" y="540" width="6" height="8" />
+          <rect x="70" y="540" width="6" height="8" />
+          <rect x="30" y="570" width="6" height="8" />
+          <rect x="70" y="570" width="6" height="8" />
+
+          <rect x="230" y="510" width="8" height="10" />
+          <rect x="250" y="510" width="8" height="10" />
+          <rect x="230" y="540" width="8" height="10" />
+          <rect x="270" y="540" width="8" height="10" />
+
+          <rect x="1450" y="520" width="6" height="8" />
+          <rect x="1470" y="520" width="6" height="8" />
+          <rect x="1650" y="510" width="8" height="10" />
+          <rect x="1670" y="510" width="8" height="10" />
+          <rect x="1650" y="540" width="8" height="10" />
+        </g>
+
+        <g fill="#1D1728">
+          <rect x="0" y="580" width="380" height="500" />
+          <polygon points="0,580 390,580 370,555 -10,555" fill="#3D2F4C" />
+          <rect x="0" y="576" width="385" height="5" fill="#5B3256" />
+
+          <rect x="1540" y="560" width="380" height="520" />
+          <polygon points="1520,560 1920,560 1920,535 1540,535" fill="#3D2F4C" />
+          <rect x="1530" y="556" width="390" height="5" fill="#5B3256" />
+        </g>
+
+        <g id="neon-signs">
+          <rect x="310" y="610" width="45" height="180" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
+          <rect x="315" y="618" width="35" height="164" fill="#F57D7C" opacity="0.15" />
+          <text x="332" y="650" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">深</text>
+          <text x="332" y="685" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">夜</text>
+          <text x="332" y="720" font-family="'DotGothic16', monospace" font-size="20" fill="#F57D7C" text-anchor="middle" font-weight="bold">音</text>
+          <text x="332" y="755" font-family="'DotGothic16', monospace" font-size="20" fill="#F57D7C" text-anchor="middle" font-weight="bold">楽</text>
+
+          <rect x="40" y="620" width="220" height="55" fill="#131021" stroke="#F57D7C" stroke-width="3" />
+          <text x="150" y="658" font-family="'Press Start 2P', monospace" font-size="18" fill="#F57D7C" text-anchor="middle" font-weight="bold">CITY POP</text>
+
+          <rect x="60" y="720" width="180" height="110" fill="#FFC061" stroke="#3D2F4C" stroke-width="4" opacity="0.9" />
+          <line x1="150" y1="720" x2="150" y2="830" stroke="#2A2238" stroke-width="4" />
+          <line x1="60" y1="775" x2="240" y2="775" stroke="#2A2238" stroke-width="4" />
+          <rect x="180" y="790" width="20" height="20" fill="#131021" />
+          <polygon points="190,790 175,765 190,775 205,765" fill="#131021" />
+
+          <rect x="1565" y="590" width="50" height="210" fill="#131021" stroke="#FFC061" stroke-width="3" />
+          <text x="1590" y="630" font-family="'DotGothic16', monospace" font-size="22" fill="#F57D7C" text-anchor="middle" font-weight="bold">夜</text>
+          <text x="1590" y="670" font-family="'DotGothic16', monospace" font-size="22" fill="#F57D7C" text-anchor="middle" font-weight="bold">間</text>
+          <text x="1590" y="710" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">飛</text>
+          <text x="1590" y="750" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">行</text>
+          <text x="1590" y="785" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFF" text-anchor="middle">BAR</text>
+
+          <g id="lantern">
+            <rect x="1660" y="630" width="4" height="25" fill="#131021" />
+            <ellipse cx="1662" cy="675" rx="20" ry="26" fill="#E08573" stroke="#A2536A" stroke-width="3" />
+            <rect x="1650" y="655" width="24" height="3" fill="#131021" />
+            <rect x="1650" y="692" width="24" height="3" fill="#131021" />
+            <text x="1662" y="682" font-family="'DotGothic16', monospace" font-size="16" fill="#131021" text-anchor="middle" font-weight="bold">酒</text>
+          </g>
+
+          <rect x="1740" y="630" width="150" height="45" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
+          <text x="1815" y="660" font-family="'DotGothic16', monospace" font-size="18" fill="#FFC061" text-anchor="middle">喫茶 80s</text>
+        </g>
+
+        <g id="power-lines">
+          <rect x="360" y="300" width="16" height="780" fill="#131021" stroke="#3D2F4C" stroke-width="2" />
+          <rect x="290" y="340" width="160" height="10" fill="#2A2238" stroke="#131021" stroke-width="2" />
+          <rect x="310" y="390" width="120" height="8" fill="#2A2238" stroke="#131021" stroke-width="2" />
+          <rect x="325" y="440" width="30" height="50" fill="#131021" stroke="#3D2F4C" stroke-width="2" />
+          <rect x="300" y="332" width="8" height="8" fill="#FFC061" />
+          <rect x="430" y="332" width="8" height="8" fill="#FFC061" />
+          <rect x="320" y="382" width="6" height="8" fill="#FFC061" />
+          <rect x="410" y="382" width="6" height="8" fill="#FFC061" />
+
+          <rect x="1500" y="260" width="16" height="820" fill="#131021" stroke="#3D2F4C" stroke-width="2" />
+          <rect x="1430" y="310" width="160" height="10" fill="#2A2238" stroke="#131021" stroke-width="2" />
+          <rect x="1455" y="360" width="110" height="8" fill="#2A2238" stroke="#131021" stroke-width="2" />
+          <rect x="1520" y="400" width="32" height="55" fill="#131021" stroke="#3D2F4C" stroke-width="2" />
+
+          <path d="M 0,320 Q 300,380 360,340" stroke="#131021" stroke-width="2.5" fill="none" />
+          <path d="M 360,340 Q 930,470 1500,310" stroke="#131021" stroke-width="3" fill="none" />
+          <path d="M 360,350 Q 930,500 1500,320" stroke="#131021" stroke-width="2" fill="none" />
+          <path d="M 310,390 Q 930,530 1500,370" stroke="#131021" stroke-width="2.5" fill="none" />
+          <path d="M 1500,310 Q 1710,360 1920,290" stroke="#131021" stroke-width="3" fill="none" />
+          <path d="M 1500,325 Q 1710,380 1920,310" stroke="#131021" stroke-width="2" fill="none" />
+        </g>
+
+        <polygon points="0,960 1920,960 1920,1080 0,1080" fill="#131021" />
+        <line x1="0" y1="960" x2="1920" y2="960" stroke="#3D2F4C" stroke-width="4" />
+        
+        <ellipse cx="960" cy="1030" rx="600" ry="40" fill="#A2536A" opacity="0.15" />
+        <ellipse cx="400" cy="1010" rx="200" ry="25" fill="#FFC061" opacity="0.12" />
+        <ellipse cx="1550" cy="1010" rx="220" ry="25" fill="#F57D7C" opacity="0.12" />
+      </svg>
+      `;
+      bg.innerHTML = svg;
+    }
+
+    window.addEventListener('DOMContentLoaded', renderPixelDuskAlley);
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      renderPixelDuskAlley();
+    }
+  </script>
+</body>
+</html>
