@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="th" class="h-full">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Japanese Music Station | シティポップ・ステーション</title>
+  <title>Japanese Music Station</title>
   
   <!-- Retro Pixel Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=VT323&display=swap" rel="stylesheet">
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -32,7 +32,6 @@
             header: ['"Press Start 2P"', 'monospace'],
             body: ['"VT323"', 'monospace'],
             sub: ['"Silkscreen"', 'monospace'],
-            jp: ['"DotGothic16"', '"VT323"', 'monospace'],
           },
           screens: {
             'custom-lg': '900px',
@@ -214,22 +213,6 @@
       animation: pulseStep 1.2s steps(4) infinite;
     }
 
-    @keyframes cassetteRoll {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    .animate-spin-steps {
-      animation: cassetteRoll 2.5s steps(8) infinite;
-    }
-
-    @keyframes catBop {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-    .animate-dj-bop {
-      animation: catBop 0.6s steps(2) infinite;
-    }
-
     @keyframes starBlink {
       0%, 100% { opacity: 0.2; }
       50% { opacity: 1; }
@@ -241,10 +224,10 @@
 </head>
 <body class="min-h-screen relative flex flex-col justify-between overflow-x-hidden selection:bg-neonPink selection:text-bldgShadow">
 
-  <!-- Background Japanese Dusk Cityscape SVG Layer -->
+  <!-- Background Dusk Cityscape SVG Layer (Minimalist 16/32-Bit Pixel Art) -->
   <div id="cityscape-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-  <!-- CRT Scanline Overlay (Toggleable via state) -->
+  <!-- CRT Scanline Overlay (Toggleable) -->
   <div id="crt-overlay" class="scanlines"></div>
 
   <!-- React Root Container -->
@@ -265,7 +248,7 @@
           if (AudioContext) this.ctx = new AudioContext();
         }
       }
-      playTone(freq, type, duration, vol = 0.1) {
+      playTone(freq, type, duration, vol = 0.08) {
         if (!this.enabled) return;
         try {
           this.init();
@@ -285,13 +268,13 @@
           // ignore audio context policy before user gesture
         }
       }
-      click() { this.playTone(880, 'square', 0.05, 0.04); }
+      click() { this.playTone(880, 'square', 0.04, 0.03); }
       coin() {
-        this.playTone(987.77, 'square', 0.08, 0.06);
-        setTimeout(() => this.playTone(1318.51, 'square', 0.18, 0.06), 70);
+        this.playTone(987.77, 'square', 0.06, 0.04);
+        setTimeout(() => this.playTone(1318.51, 'square', 0.14, 0.04), 60);
       }
-      delete() { this.playTone(220, 'sawtooth', 0.1, 0.05); }
-      switch() { this.playTone(523.25, 'triangle', 0.06, 0.05); }
+      delete() { this.playTone(220, 'sawtooth', 0.08, 0.04); }
+      switch() { this.playTone(523.25, 'triangle', 0.05, 0.04); }
     }
     const sfx = new SoundFX();
 
@@ -340,10 +323,10 @@
 
     // --- MAIN PARENT COMPONENT ---
     function App() {
-      // DATA STRUCTURE (EXACT IMPLEMENTATION):
+      // EXACT DATA STRUCTURE:
       // queue: Array<Track>, currentTrack: Track | null, history: Array<Track>, isPlaying: bool, playerStatus: string, volume: number
       const [queue, setQueue] = useState(() => {
-        const saved = localStorage.getItem('jms_queue_v2');
+        const saved = localStorage.getItem('jms_queue_v3');
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -351,7 +334,7 @@
       });
 
       const [currentTrack, setCurrentTrack] = useState(() => {
-        const saved = localStorage.getItem('jms_current_v2');
+        const saved = localStorage.getItem('jms_current_v3');
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -359,7 +342,7 @@
       });
 
       const [history, setHistory] = useState(() => {
-        const saved = localStorage.getItem('jms_history_v2');
+        const saved = localStorage.getItem('jms_history_v3');
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -368,9 +351,11 @@
 
       const [isPlaying, setIsPlaying] = useState(false);
       const [playerStatus, setPlayerStatus] = useState('empty'); // "playing" | "paused" | "empty"
+      
+      // Default volume set to 25%
       const [volume, setVolume] = useState(() => {
-        const saved = localStorage.getItem('jms_volume_v2');
-        return saved ? Number(saved) : 80;
+        const saved = localStorage.getItem('jms_volume_v3');
+        return saved !== null ? Number(saved) : 25;
       });
 
       // Additional UI State
@@ -384,7 +369,7 @@
       const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
       const [toastMsg, setToastMsg] = useState(null);
 
-      // Refs to prevent stale closure in YouTube Player event callbacks
+      // Refs to prevent stale closures in YouTube Player event callbacks
       const queueRef = useRef(queue);
       const currentTrackRef = useRef(currentTrack);
       const historyRef = useRef(history);
@@ -401,14 +386,14 @@
       useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
       // Persist state
-      useEffect(() => { localStorage.setItem('jms_queue_v2', JSON.stringify(queue)); }, [queue]);
-      useEffect(() => { localStorage.setItem('jms_current_v2', JSON.stringify(currentTrack)); }, [currentTrack]);
-      useEffect(() => { localStorage.setItem('jms_history_v2', JSON.stringify(history)); }, [history]);
-      useEffect(() => { localStorage.setItem('jms_volume_v2', volume.toString()); }, [volume]);
+      useEffect(() => { localStorage.setItem('jms_queue_v3', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { localStorage.setItem('jms_current_v3', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { localStorage.setItem('jms_history_v3', JSON.stringify(history)); }, [history]);
+      useEffect(() => { localStorage.setItem('jms_volume_v3', volume.toString()); }, [volume]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
-        setTimeout(() => setToastMsg(null), 3200);
+        setTimeout(() => setToastMsg(null), 3000);
       };
 
       useEffect(() => {
@@ -416,7 +401,7 @@
         if (crt) crt.style.display = crtEnabled ? 'block' : 'none';
       }, [crtEnabled]);
 
-      // Initialize YouTube API with full controls enabled (Settings Gear, CC button, etc.)
+      // Initialize YouTube API with full controls enabled (Settings Gear & CC)
       useEffect(() => {
         window.onYouTubeIframeAPIReady = () => {
           initYTPlayer();
@@ -445,7 +430,7 @@
             videoId: currentTrackRef.current ? currentTrackRef.current.videoId : '',
             playerVars: {
               autoplay: 0,
-              controls: 1, // SHOW full YouTube controls (Gear Settings & CC button)
+              controls: 1, // Full native YouTube controls (Settings Gear & CC Subtitles)
               fs: 1,
               rel: 0,
               playsinline: 1,
@@ -497,7 +482,7 @@
 
       function onPlayerError(event) {
         console.warn('YT Player Error Code:', event.data);
-        showToast(`⚠️ เพลงไม่สามารถเล่นได้ (Error ${event.data}) — กำลังข้ามไปยังเพลงถัดไป`);
+        showToast(`Video unavailable (Error ${event.data}) — Skipping to next track`);
         setTimeout(() => {
           handleNextTrack();
         }, 1500);
@@ -522,7 +507,7 @@
         };
       }, [isPlaying]);
 
-      // Auto Advance on song end: Append played track to History in chronological order!
+      // Auto Advance on song end: Append played track to History in chronological order
       function handleTrackEnded() {
         const currentMode = loopModeRef.current;
         const cur = currentTrackRef.current;
@@ -539,7 +524,6 @@
           const next = curQueue[0];
           const remQueue = curQueue.slice(1);
           if (cur) {
-            // Append chronologically: Song 1 -> index 0 (ลำดับที่ 1), Song 2 -> index 1 (ลำดับที่ 2)
             setHistory(prev => [...prev, cur]);
           }
           setCurrentTrack(next);
@@ -582,7 +566,7 @@
           if (queue.length > 0) {
             handleNextTrack();
           } else {
-            showToast('⚠️ กรุณาวางลิงก์ YouTube และกด "เพิ่มคิว" ก่อนเริ่มเล่น');
+            showToast('Please add a YouTube URL to the queue first');
           }
           return;
         }
@@ -603,19 +587,18 @@
       const handleNextTrack = () => {
         sfx.click();
         if (queue.length === 0) {
-          showToast('📋 ไม่มีเพลงถัดไปในคิว');
+          showToast('No more tracks in queue');
           return;
         }
         const next = queue[0];
         const remQueue = queue.slice(1);
         if (currentTrack) {
-          // Append chronologically to history
           setHistory(prev => [...prev, currentTrack]);
         }
         setCurrentTrack(next);
         setQueue(remQueue);
         playTrackInPlayer(next.videoId);
-        showToast(`▶ กำลังเล่น: ${next.title || next.videoId}`);
+        showToast(`Now Playing: ${next.title || next.videoId}`);
       };
 
       const handlePrevTrack = () => {
@@ -626,7 +609,6 @@
         }
 
         if (history.length > 0) {
-          // Pop the last played track from history
           const lastIdx = history.length - 1;
           const prev = history[lastIdx];
           const remHistory = history.slice(0, lastIdx);
@@ -636,11 +618,11 @@
           setCurrentTrack(prev);
           setHistory(remHistory);
           playTrackInPlayer(prev.videoId);
-          showToast(`⏮ ย้อนกลับ: ${prev.title || prev.videoId}`);
+          showToast(`Previous: ${prev.title || prev.videoId}`);
         } else if (currentTrack && playerRef.current) {
           playerRef.current.seekTo(0);
         } else {
-          showToast('ℹ️ ไม่มีประวัติเพลงก่อนหน้า');
+          showToast('No previous playback history');
         }
       };
 
@@ -683,18 +665,18 @@
         sfx.click();
         const nextMode = loopMode === 'none' ? 'one' : loopMode === 'one' ? 'all' : 'none';
         setLoopMode(nextMode);
-        showToast(nextMode === 'one' ? '🔂 โหมดวนซ้ำเพลงเดียว' : nextMode === 'all' ? '🔁 โหมดวนซ้ำคิวทั้งหมด' : '➡️ ปิดโหมดวนซ้ำ');
+        showToast(nextMode === 'one' ? 'Repeat One Track' : nextMode === 'all' ? 'Repeat All Queue' : 'Repeat Off');
       };
 
       const handleShuffleQueue = () => {
         sfx.coin();
         if (queue.length <= 1) {
-          showToast('ℹ️ ต้องมีอย่างน้อย 2 เพลงในคิวเพื่อสลับ');
+          showToast('Need at least 2 tracks in queue to shuffle');
           return;
         }
         const shuffled = [...queue].sort(() => Math.random() - 0.5);
         setQueue(shuffled);
-        showToast('🔀 สลับลำดับคิวเพลงเรียบร้อย!');
+        showToast('Queue order shuffled');
       };
 
       const handleToggleCC = () => {
@@ -706,13 +688,13 @@
                 playerRef.current.loadModule('captions');
               }
               setCcEnabled(true);
-              showToast('💬 เปิดคำบรรยาย (CC Enabled)');
+              showToast('Subtitles Enabled (CC)');
             } else {
               if (playerRef.current.unloadModule) {
                 playerRef.current.unloadModule('captions');
               }
               setCcEnabled(false);
-              showToast('💬 ปิดคำบรรยาย (CC Disabled)');
+              showToast('Subtitles Disabled');
             }
           } catch (e) {
             console.warn('CC toggle error:', e);
@@ -727,12 +709,12 @@
       const addToQueue = async (urlOrId) => {
         const videoId = extractVideoId(urlOrId);
         if (!videoId) {
-          showToast('❌ ไม่พบ YouTube Video ID ที่ถูกต้อง กรุณาตรวจสอบ URL');
+          showToast('Invalid YouTube URL or Video ID');
           return false;
         }
 
         sfx.coin();
-        showToast('🔍 กำลังดึงข้อมูลเพลง...');
+        showToast('Fetching track title...');
         const title = await fetchVideoTitle(videoId);
 
         const newTrack = {
@@ -743,11 +725,10 @@
         };
 
         setQueue(prev => [...prev, newTrack]);
-        showToast(`➕ เพิ่มเข้าคิวเรียบร้อย: ${newTrack.title}`);
+        showToast(`Added to queue: ${newTrack.title}`);
         return true;
       };
 
-      // Requeue track from History
       const handleRequeueFromHistory = (track) => {
         sfx.coin();
         const newTrack = {
@@ -757,7 +738,7 @@
           addedAt: Date.now()
         };
         setQueue(prev => [...prev, newTrack]);
-        showToast(`➕ เพิ่ม "${newTrack.title || newTrack.videoId}" กลับเข้าคิวแล้ว`);
+        showToast(`Added "${newTrack.title || newTrack.videoId}" back to queue`);
       };
 
       const playNowFromQueue = (index) => {
@@ -772,7 +753,7 @@
         setCurrentTrack(selected);
         setQueue(updatedQueue);
         playTrackInPlayer(selected.videoId);
-        showToast(`▶ กำลังเล่น: ${selected.title}`);
+        showToast(`Now Playing: ${selected.title}`);
       };
 
       const moveQueueItem = (index, direction) => {
@@ -790,20 +771,20 @@
       const removeQueueItem = (index) => {
         sfx.delete();
         setQueue(prev => prev.filter((_, idx) => idx !== index));
-        showToast('🗑 ลบเพลงออกจากคิวแล้ว');
+        showToast('Removed from queue');
       };
 
       const clearAllQueue = () => {
         sfx.delete();
         if (queue.length === 0) return;
         setQueue([]);
-        showToast('🗑 ล้างคิวเพลงทั้งหมดเรียบร้อย');
+        showToast('Queue cleared');
       };
 
       const clearHistory = () => {
         sfx.delete();
         setHistory([]);
-        showToast('🗑 ล้างประวัติการเล่นเรียบร้อย');
+        showToast('History cleared');
       };
 
       return (
@@ -824,8 +805,8 @@
                     PIXEL × CITY POP
                   </span>
                 </div>
-                <p className="text-xs text-skySunset font-jp tracking-wide">
-                  シティポップ・ジュークボックス — 80s Dusk Alleyway DJ Booth
+                <p className="text-xs text-skySunset font-sub tracking-wide">
+                  City Pop Jukebox — 80s Dusk Alleyway DJ Booth
                 </p>
               </div>
             </div>
@@ -835,20 +816,20 @@
               <button 
                 onClick={() => setCrtEnabled(!crtEnabled)}
                 className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${crtEnabled ? 'bg-neonPink text-bldgShadow font-bold' : 'bg-wallBase text-gray-400'}`}
-                title="เปิด/ปิดเส้นสแกน CRT"
+                title="Toggle CRT Scanline Effect"
               >
-                📺 CRT {crtEnabled ? 'ON' : 'OFF'}
+                CRT {crtEnabled ? 'ON' : 'OFF'}
               </button>
 
               <button 
                 onClick={() => {
                   sfx.enabled = !sfx.enabled;
-                  showToast(sfx.enabled ? '🔊 เปิดเอฟเฟกต์เสียง 8-Bit' : '🔇 ปิดเอฟเฟกต์เสียง');
+                  showToast(sfx.enabled ? '8-Bit SFX Enabled' : '8-Bit SFX Muted');
                 }}
                 className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${sfx.enabled ? 'text-warmLight bg-wallBase' : 'text-gray-500 bg-wallBase'}`}
-                title="เปิด/ปิดเสียง 8-Bit Sound FX"
+                title="Toggle 8-Bit Audio SFX"
               >
-                {sfx.enabled ? '🔊 SFX' : '🔇 SFX'}
+                {sfx.enabled ? 'SFX ON' : 'SFX OFF'}
               </button>
             </div>
           </header>
@@ -894,7 +875,7 @@
                   if (playerRef.current && isPlayerReady.current) {
                     playerRef.current.setPlaybackRate(rate);
                   }
-                  showToast(`⚡ ความเร็ว: ${rate}x`);
+                  showToast(`Playback Speed: ${rate}x`);
                 }}
               />
             </section>
@@ -927,7 +908,7 @@
             </div>
             <div className="text-skyDusk flex items-center gap-2">
               <span>PIXEL ART × CITY POP DJ BOOTH</span>
-              <span className="text-warmLight font-jp">「夜のドライブ・ミュージック」</span>
+              <span className="text-warmLight">Late Night Drive Music</span>
             </div>
           </footer>
         </div>
@@ -985,8 +966,8 @@
                 <span className="inline-block w-2.5 h-2.5 bg-neonPink animate-pulse"></span>
                 <span>DJ BOOTH SCREEN (16:9)</span>
               </div>
-              <span className="text-skyDusk font-jp text-xs">
-                {isPlaying ? '● ON AIR / 生放送中' : '■ STANDBY / 待機中'}
+              <span className="text-skyDusk font-sub text-xs">
+                {isPlaying ? '● ON AIR' : '■ STANDBY'}
               </span>
             </div>
 
@@ -996,27 +977,23 @@
               {/* Actual YouTube IFrame Mounting Element */}
               <div id="youtube-player-embed" className="absolute inset-0 w-full h-full"></div>
 
-              {/* Pixel Art Screen Overlay / Idle Graphic when empty */}
+              {/* Minimalist Display Area Overlay when empty (No emojis, no 80s text) */}
               {playerStatus === 'empty' && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-bldgShadow/90 z-20 p-4 text-center">
-                  <div className="text-4xl sm:text-6xl mb-2 font-header text-neonPink drop-shadow-[3px_3px_0px_#000]">
-                    📼 80s
-                  </div>
-                  <div className="font-header text-xs sm:text-sm text-warmLight mb-1">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-bldgShadow/95 z-20 p-6 text-center">
+                  <div className="font-header text-sm sm:text-base text-neonPink tracking-widest mb-2 border-b-2 border-pixelBorder pb-2">
                     JAPANESE MUSIC STATION
                   </div>
                   <p className="font-body text-base sm:text-lg text-skyDusk max-w-md">
-                    วางลิงก์ YouTube ด้านล่างและกด "เพิ่มคิว" เพื่อเริ่มสร้างเพลย์ลิสต์ของคุณ
+                    Paste a YouTube link below and click "ADD TO QUEUE" to start
                   </p>
                 </div>
               )}
 
-              {/* Animated DJ Cat & Cassette Indicator in Corner (Non-blocking) */}
+              {/* Minimalist On-Air Badge (Clean text, no emojis) */}
               {isPlaying && (
-                <div className="absolute top-2 right-2 bg-bldgShadow/85 border-2 border-pixelBorder px-2.5 py-1 flex items-center gap-2 z-10 pointer-events-none">
-                  <span className="inline-block text-base animate-dj-bop">🐱🎧</span>
-                  <span className="inline-block text-neonPink text-sm animate-spin-steps">💽</span>
-                  <span className="text-xs text-warmLight font-sub">ON AIR</span>
+                <div className="absolute top-2 right-2 bg-bldgShadow/85 border-2 border-pixelBorder px-2.5 py-1 flex items-center gap-1.5 z-10 pointer-events-none">
+                  <span className="inline-block w-2 h-2 bg-neonPink animate-pulse"></span>
+                  <span className="text-xs text-warmLight font-sub tracking-wider">ON AIR</span>
                 </div>
               )}
             </div>
@@ -1052,7 +1029,7 @@
           <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs text-skyDusk font-header">
               <div className="flex items-center gap-2">
-                <span className="text-neonPink">📻 NOW PLAYING</span>
+                <span className="text-neonPink">NOW PLAYING</span>
                 {currentTrack && (
                   <span className="text-gray-400 font-body text-sm font-normal">
                     [ID: {currentTrack.videoId}]
@@ -1067,12 +1044,12 @@
             {/* Marquee Title Container */}
             <div className="pixel-frame-inset p-2 bg-bldgShadow overflow-hidden whitespace-nowrap">
               {currentTrack ? (
-                <div className="font-jp text-lg sm:text-xl text-warmLight font-bold animate-marquee">
-                  🎵 {currentTrack.title || `YouTube Video [${currentTrack.videoId}]`} ─── 80s Retro City Pop FM 98.6 ───
+                <div className="font-body text-lg sm:text-xl text-warmLight font-bold animate-marquee">
+                  {currentTrack.title || `YouTube Video [${currentTrack.videoId}]`} ─── Retro City Pop Radio ───
                 </div>
               ) : (
                 <div className="font-body text-base text-gray-500 italic">
-                  ⏸ ไม่ได้เล่นเพลงใดอยู่ (เลือกเพลงจากคิวหรือกด Play เพื่อเริ่ม)
+                  No track currently playing (select from queue or press Play)
                 </div>
               )}
             </div>
@@ -1081,7 +1058,7 @@
             <div 
               onClick={onSeek}
               className="relative w-full h-4 bg-bldgShadow border-2 border-pixelBorder cursor-pointer shadow-[inset_2px_2px_0px_#000]"
-              title="คลิกเพื่อเลื่อนเวลาเพลง"
+              title="Click to seek position"
             >
               {/* Filled Progress */}
               <div 
@@ -1099,11 +1076,11 @@
             </div>
           </div>
 
-          {/* URL INPUT + "เพิ่มคิว" (Add) BUTTON */}
+          {/* URL INPUT + "ADD TO QUEUE" BUTTON */}
           <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-header text-skySunset">
-              <span>➕ เพิ่มเพลงเข้าคิว (ADD YOUTUBE URL)</span>
-              <span className="text-gray-400 font-body text-sm">รองรับ youtube.com, youtu.be, shorts</span>
+              <span>ADD TO QUEUE (YOUTUBE URL)</span>
+              <span className="text-gray-400 font-body text-sm">Supports youtube.com, youtu.be, shorts</span>
             </div>
 
             <form onSubmit={handleAddSubmit} className="flex flex-col sm:flex-row gap-2">
@@ -1111,7 +1088,7 @@
                 type="text"
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
-                placeholder="วางลิงก์ YouTube (เช่น https://www.youtube.com/watch?v=...)..."
+                placeholder="Paste YouTube URL (e.g. https://www.youtube.com/watch?v=...)..."
                 className="pixel-input flex-1 w-full text-base sm:text-lg"
               />
               <button 
@@ -1119,7 +1096,7 @@
                 disabled={isAdding || !inputUrl.trim()}
                 className="pixel-btn pixel-btn-primary px-5 py-2 text-lg sm:text-xl shrink-0"
               >
-                {isAdding ? '⏳ กำลังเพิ่ม...' : '📥 เพิ่มคิว'}
+                {isAdding ? 'ADDING...' : '+ ADD TO QUEUE'}
               </button>
             </form>
           </div>
@@ -1135,7 +1112,7 @@
                 <button 
                   onClick={onPrev}
                   className="pixel-btn px-3.5 py-2 text-xl"
-                  title="เพลงก่อนหน้า / เริ่มใหม่ (Prev)"
+                  title="Previous Track / Restart"
                 >
                   ⏮
                 </button>
@@ -1144,9 +1121,9 @@
                 <button 
                   onClick={onPlayPause}
                   className={`pixel-btn ${isPlaying ? 'pixel-btn-warning' : 'pixel-btn-neon'} px-6 py-2 text-2xl font-bold`}
-                  title={isPlaying ? 'หยุดชั่วคราว (Pause)' : 'เล่นเพลง (Play)'}
+                  title={isPlaying ? 'Pause' : 'Play'}
                 >
-                  {isPlaying ? '⏸ PAUSE' : '▶ PLAY'}
+                  {isPlaying ? 'PAUSE' : 'PLAY'}
                 </button>
 
                 {/* NEXT */}
@@ -1154,7 +1131,7 @@
                   onClick={onNext}
                   disabled={queueLength === 0}
                   className="pixel-btn px-3.5 py-2 text-xl"
-                  title="เพลงถัดไป (Next)"
+                  title="Next Track"
                 >
                   ⏭
                 </button>
@@ -1163,9 +1140,9 @@
                 <button 
                   onClick={onToggleLoop}
                   className={`pixel-btn px-3 py-2 text-base ${loopMode !== 'none' ? 'bg-neonPink text-bldgShadow font-bold' : ''}`}
-                  title={`โหมดวนซ้ำ: ${loopMode}`}
+                  title={`Repeat Mode: ${loopMode}`}
                 >
-                  {loopMode === 'one' ? '🔂 1' : loopMode === 'all' ? '🔁 ALL' : '➡️ OFF'}
+                  {loopMode === 'one' ? 'LOOP 1' : loopMode === 'all' ? 'LOOP ALL' : 'LOOP OFF'}
                 </button>
 
                 {/* SHUFFLE */}
@@ -1173,18 +1150,18 @@
                   onClick={onShuffleQueue}
                   disabled={queueLength <= 1}
                   className="pixel-btn px-3 py-2 text-base"
-                  title="สลับคิวเพลง (Shuffle)"
+                  title="Shuffle Queue"
                 >
-                  🔀
+                  SHUFFLE
                 </button>
 
                 {/* CC SUBTITLES TOGGLE BUTTON */}
                 <button 
                   onClick={onToggleCC}
                   className={`pixel-btn px-3 py-2 text-base ${ccEnabled ? 'bg-warmLight text-bldgShadow font-bold' : 'bg-wallBase text-gray-300'}`}
-                  title="เปิด/ปิดคำบรรยาย (CC Subtitles)"
+                  title="Toggle Subtitles (CC)"
                 >
-                  💬 CC
+                  CC {ccEnabled ? 'ON' : 'OFF'}
                 </button>
               </div>
 
@@ -1208,10 +1185,10 @@
               <div className="flex items-center gap-2 flex-1 max-w-sm">
                 <button 
                   onClick={onToggleMute}
-                  className="pixel-btn px-2.5 py-1 text-base text-warmLight"
-                  title={isMuted ? 'เปิดเสียง' : 'ปิดเสียง'}
+                  className="pixel-btn px-2.5 py-1 text-sm text-warmLight"
+                  title={isMuted ? 'Unmute' : 'Mute'}
                 >
-                  {isMuted || volume === 0 ? '🔇' : volume < 50 ? '🔉' : '🔊'}
+                  {isMuted || volume === 0 ? 'MUTED' : 'VOL'}
                 </button>
 
                 <div className="flex-1 flex items-center gap-2">
@@ -1235,9 +1212,9 @@
                   onClick={onClearQueue}
                   disabled={queueLength === 0}
                   className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
-                  title="ล้างคิวเพลงทั้งหมด"
+                  title="Clear all tracks in queue"
                 >
-                  🗑 ล้างคิว ({queueLength})
+                  CLEAR QUEUE ({queueLength})
                 </button>
               </div>
             </div>
@@ -1271,14 +1248,14 @@
                 onClick={() => { sfx.switch(); setActiveTab('queue'); }}
                 className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'queue' ? 'pixel-btn-neon' : 'bg-wallBase text-gray-300'}`}
               >
-                📋 คิวเพลง ({queue.length})
+                QUEUE ({queue.length})
               </button>
               
               <button 
                 onClick={() => { sfx.switch(); setActiveTab('history'); }}
                 className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'history' ? 'pixel-btn-warning' : 'bg-wallBase text-gray-300'}`}
               >
-                📜 ประวัติ ({history.length})
+                HISTORY ({history.length})
               </button>
             </div>
           </div>
@@ -1291,12 +1268,11 @@
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {queue.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
-                    <div className="text-4xl mb-2">📼</div>
                     <div className="font-header text-xs text-warmLight mb-1">
-                      คิวเพลงว่างอยู่
+                      QUEUE IS EMPTY
                     </div>
                     <p className="font-body text-base text-gray-400">
-                      วาง URL เพลง YouTube ในช่องด้านซ้ายแล้วกด "เพิ่มคิว" เพื่อเพิ่มเพลง
+                      Paste a YouTube URL on the left and click "ADD TO QUEUE" to add tracks
                     </p>
                   </div>
                 ) : (
@@ -1317,18 +1293,18 @@
                         <button 
                           onClick={() => onPlayNow(index)}
                           className="pixel-btn px-2 py-0.5 text-xs bg-warmLight text-bldgShadow hover:bg-white font-bold shrink-0"
-                          title="เล่นเพลงนี้ทันที"
+                          title="Play this track now"
                         >
-                          ▶
+                          PLAY
                         </button>
 
                         {/* Title & Video ID */}
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-jp text-base text-white truncate font-medium group-hover:text-warmLight" title={track.title}>
+                          <span className="font-body text-base text-white truncate font-medium group-hover:text-warmLight" title={track.title}>
                             {track.title || `YouTube Video [${track.videoId}]`}
                           </span>
                           <span className="text-xs text-gray-400 font-body">
-                            ID: {track.videoId} • เพิ่มเมื่อ {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            ID: {track.videoId} • Added {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
@@ -1340,7 +1316,7 @@
                           onClick={() => onMove(index, -1)}
                           disabled={index === 0}
                           className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
-                          title="เลื่อนขึ้น"
+                          title="Move Up"
                         >
                           ▲
                         </button>
@@ -1350,7 +1326,7 @@
                           onClick={() => onMove(index, 1)}
                           disabled={index === queue.length - 1}
                           className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
-                          title="เลื่อนลง"
+                          title="Move Down"
                         >
                           ▼
                         </button>
@@ -1359,7 +1335,7 @@
                         <button 
                           onClick={() => onRemove(index)}
                           className="pixel-btn pixel-btn-danger px-2 py-0.5 text-xs"
-                          title="ลบเพลงออกจากคิว"
+                          title="Remove from queue"
                         >
                           ✕
                         </button>
@@ -1372,14 +1348,14 @@
               {/* Bottom Actions for Queue */}
               <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
                 <span className="text-xs font-sub text-gray-400">
-                  ทั้งหมด {queue.length} เพลง
+                  Total: {queue.length} tracks
                 </span>
                 <button 
                   onClick={onClearAll}
                   disabled={queue.length === 0}
                   className="pixel-btn pixel-btn-danger px-4 py-1.5 text-base font-bold"
                 >
-                  🗑 ล้างคิวทั้งหมด (Clear All)
+                  CLEAR ALL QUEUE
                 </button>
               </div>
             </div>
@@ -1391,12 +1367,11 @@
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {history.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
-                    <div className="text-4xl mb-2">📜</div>
                     <div className="font-header text-xs text-gray-400 mb-1">
-                      ยังไม่มีประวัติการเล่นเพลง
+                      NO PLAYBACK HISTORY
                     </div>
                     <p className="font-body text-sm text-gray-500">
-                      เพลงที่เล่นจบหรือถูกข้ามจะปรากฏในหน้านี้ เรียงตามลำดับที่เล่น
+                      Played or skipped tracks will appear here in chronological order
                     </p>
                   </div>
                 ) : (
@@ -1411,7 +1386,7 @@
                           {index + 1}.
                         </span>
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-jp text-base text-gray-200 truncate font-medium" title={track.title}>
+                          <span className="font-body text-base text-gray-200 truncate font-medium" title={track.title}>
                             {track.title || track.videoId}
                           </span>
                           <span className="text-xs text-gray-400 font-body">
@@ -1420,13 +1395,13 @@
                         </div>
                       </div>
 
-                      {/* Re-add button: Functional and connected! */}
+                      {/* Re-add button */}
                       <button 
                         onClick={() => onRequeue(track)}
                         className="pixel-btn pixel-btn-primary px-2.5 py-1 text-xs shrink-0"
-                        title="เพิ่มเพลงนี้กลับเข้าคิว"
+                        title="Add this track back to queue"
                       >
-                        + เพิ่มเข้าคิว
+                        + ADD TO QUEUE
                       </button>
                     </div>
                   ))
@@ -1436,14 +1411,14 @@
               {/* Bottom Actions for History */}
               <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
                 <span className="text-xs font-sub text-gray-400">
-                  ประวัติ {history.length} รายการ
+                  History: {history.length} items
                 </span>
                 <button 
                   onClick={onClearHistory}
                   disabled={history.length === 0}
                   className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
                 >
-                  🗑 ล้างประวัติ (Clear History)
+                  CLEAR HISTORY
                 </button>
               </div>
             </div>
@@ -1458,7 +1433,7 @@
 
   </script>
 
-  <!-- Procedural Detailed 16/32-Bit Pixel Art Japanese Dusk Cityscape (SVG Generator) -->
+  <!-- Procedural Detailed 16/32-Bit Pixel Art Dusk Cityscape Background (Clean English Signs) -->
   <script>
     function renderPixelDuskAlley() {
       const bg = document.getElementById('cityscape-bg');
@@ -1560,39 +1535,52 @@
         </g>
 
         <g id="neon-signs">
+          <!-- LEFT SIGN 1: MIDNIGHT RECORDS -->
           <rect x="310" y="610" width="45" height="180" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
           <rect x="315" y="618" width="35" height="164" fill="#F57D7C" opacity="0.15" />
-          <text x="332" y="650" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">深</text>
-          <text x="332" y="685" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">夜</text>
-          <text x="332" y="720" font-family="'DotGothic16', monospace" font-size="20" fill="#F57D7C" text-anchor="middle" font-weight="bold">音</text>
-          <text x="332" y="755" font-family="'DotGothic16', monospace" font-size="20" fill="#F57D7C" text-anchor="middle" font-weight="bold">楽</text>
+          <text x="332" y="645" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">M</text>
+          <text x="332" y="665" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">I</text>
+          <text x="332" y="685" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">D</text>
+          <text x="332" y="705" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">N</text>
+          <text x="332" y="725" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">I</text>
+          <text x="332" y="745" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">G</text>
+          <text x="332" y="765" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">H</text>
+          <text x="332" y="785" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">T</text>
 
+          <!-- LEFT SIGN 2: CITY POP -->
           <rect x="40" y="620" width="220" height="55" fill="#131021" stroke="#F57D7C" stroke-width="3" />
           <text x="150" y="658" font-family="'Press Start 2P', monospace" font-size="18" fill="#F57D7C" text-anchor="middle" font-weight="bold">CITY POP</text>
 
+          <!-- Lit Window -->
           <rect x="60" y="720" width="180" height="110" fill="#FFC061" stroke="#3D2F4C" stroke-width="4" opacity="0.9" />
           <line x1="150" y1="720" x2="150" y2="830" stroke="#2A2238" stroke-width="4" />
           <line x1="60" y1="775" x2="240" y2="775" stroke="#2A2238" stroke-width="4" />
           <rect x="180" y="790" width="20" height="20" fill="#131021" />
           <polygon points="190,790 175,765 190,775 205,765" fill="#131021" />
 
+          <!-- RIGHT SIGN 1: NIGHT FLIGHT BAR -->
           <rect x="1565" y="590" width="50" height="210" fill="#131021" stroke="#FFC061" stroke-width="3" />
-          <text x="1590" y="630" font-family="'DotGothic16', monospace" font-size="22" fill="#F57D7C" text-anchor="middle" font-weight="bold">夜</text>
-          <text x="1590" y="670" font-family="'DotGothic16', monospace" font-size="22" fill="#F57D7C" text-anchor="middle" font-weight="bold">間</text>
-          <text x="1590" y="710" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">飛</text>
-          <text x="1590" y="750" font-family="'DotGothic16', monospace" font-size="22" fill="#FFC061" text-anchor="middle" font-weight="bold">行</text>
-          <text x="1590" y="785" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFF" text-anchor="middle">BAR</text>
+          <text x="1590" y="625" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">N</text>
+          <text x="1590" y="645" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">I</text>
+          <text x="1590" y="665" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">G</text>
+          <text x="1590" y="685" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">H</text>
+          <text x="1590" y="705" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">T</text>
+          <text x="1590" y="735" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">B</text>
+          <text x="1590" y="755" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">A</text>
+          <text x="1590" y="775" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">R</text>
 
+          <!-- Lantern -->
           <g id="lantern">
             <rect x="1660" y="630" width="4" height="25" fill="#131021" />
             <ellipse cx="1662" cy="675" rx="20" ry="26" fill="#E08573" stroke="#A2536A" stroke-width="3" />
             <rect x="1650" y="655" width="24" height="3" fill="#131021" />
             <rect x="1650" y="692" width="24" height="3" fill="#131021" />
-            <text x="1662" y="682" font-family="'DotGothic16', monospace" font-size="16" fill="#131021" text-anchor="middle" font-weight="bold">酒</text>
+            <text x="1662" y="680" font-family="'Press Start 2P', monospace" font-size="9" fill="#131021" text-anchor="middle">BAR</text>
           </g>
 
+          <!-- RIGHT SIGN 2: CAFE 80s -->
           <rect x="1740" y="630" width="150" height="45" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
-          <text x="1815" y="660" font-family="'DotGothic16', monospace" font-size="18" fill="#FFC061" text-anchor="middle">喫茶 80s</text>
+          <text x="1815" y="660" font-family="'Press Start 2P', monospace" font-size="13" fill="#FFC061" text-anchor="middle">CAFE 80s</text>
         </g>
 
         <g id="power-lines">

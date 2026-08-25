@@ -1,82 +1,64 @@
-# Change Log — บันทึกประวัติการพัฒนาและการแก้ไข 📝
+# Change Log 📝
 
-เอกสารนี้รวบรวมประวัติการพัฒนา การปรับปรุงฟังก์ชัน และการแก้ไขปัญหาทั้งหมดของโปรเจกต์ **Japanese Music Station** เขียนขึ้นด้วยภาษาที่เข้าใจง่าย เพื่อให้ผู้พัฒนาและผู้ที่ใช้แนวทาง **Vibe Coding** สามารถตรวจสอบย้อนหลังได้อย่างชัดเจน
-
----
-
-## 📦 [Version 1.3.0] — แก้ไขระบบประวัติการเล่นและปุ่มนำเพลงกลับเข้าคิว
-*วันที่ปรับปรุง: 24 สิงหาคม 2026*
-
-### 1. จัดเรียงตัวเลขในแท็บ "ประวัติ" ตามลำดับเพลงที่เล่นจริง
-* **ปัญหาเดิม**: เมื่อเพลงเล่นจบ ระบบจะนำเพลงใหม่ไปแทรกไว้บนสุด ทำให้เพลงที่เพิ่งเล่นล่าสุดกลายเป็นลำดับ 1. ส่วนเพลงแรกสุดที่เคยเล่นกลายเป็นลำดับท้ายๆ ซึ่งขัดกับความคุ้นเคย
-* **สิ่งที่แก้ไข**: ปรับระบบการบันทึกประวัติให้เป็นแบบ **ตามลำดับเวลา (Chronological Order)** โดย:
-  * เพลงที่เล่นเป็นลำดับแรก จะแสดงเป็น **ลำดับ 1.**
-  * เพลงที่เล่นเป็นลำดับที่สอง จะแสดงเป็น **ลำดับ 2.**
-  * เพลงต่อๆ ไปจะเพิ่มลำดับขึ้นเรื่อยๆ ตามลำดับเวลาที่เล่นจริง
-
-### 2. แก้ไขปุ่ม "+ เพิ่มเข้าคิว" ในหน้าประวัติให้ทำงานได้สมบูรณ์
-* **ปัญหาเดิม**: เมื่อเปิดดูในแท็บประวัติ แล้วคลิกปุ่ม `+ เพิ่มเข้าคิว` เพลงนั้นไม่ถูกนำกลับเข้าไปใส่ในคิวเพลง
-* **สาเหตุทางเทคนิค**: ตัวฟังก์ชันสำหรับรับคำสั่ง Requeue จากหน้าประวัติไม่ได้เชื่อมต่อกับฟังก์ชันจัดการคิวของคอมโพเนนต์แม่
-* **สิ่งที่แก้ไข**: เชื่อมต่อฟังก์ชัน `onRequeue` เข้ากับหน้ารายการประวัติอย่างสมบูรณ์ เมื่อคลิกปุ่ม เพลงจะถูกดึงเข้าคิวทันที พร้อมเสียง Sound Effect และการแจ้งเตือน Toast บนหน้าจอ
+Chronological record of all updates, bug fixes, and refinements for **Japanese Music Station**.
 
 ---
 
-## 📦 [Version 1.2.0] — กู้คืนปุ่มฟันเฟืองตั้งค่าความละเอียดและปุ่ม CC บนหน้าจอวิดีโอ
-*วันที่ปรับปรุง: 24 สิงหาคม 2026*
+## 📦 [Version 1.4.0] — Minimalist UI & Full English Localization
+*Release Date: August 25, 2026*
 
-### 1. เปิดแถบควบคุมมาตรฐานของ YouTube (Native Player Controls)
-* **ปัญหาเดิม**: บนหน้าจอแสดงผลวิดีโอ ไม่มีไอคอนฟันเฟือง (⚙️) สำหรับปรับความละเอียดวิดีโอ (1080p, 720p, 4K) และไม่มีปุ่มเปิด/ปิดซับไตเติล (CC) บนตัววิดีโอ
-* **สาเหตุทางเทคนิค**: ในคำสั่งตั้งค่าเครื่องเล่น YouTube ฝังคำสั่ง `controls: 0` เอาไว้ ทำให้ YouTube ซ่อนแถบเครื่องมือควบคุมด้านล่างทั้งหมด
-* **สิ่งที่แก้ไข**: ปรับการตั้งค่าเครื่องเล่นเป็น `controls: 1` ทำให้แถบควบคุมของ YouTube แสดงผลอย่างสมบูรณ์ ผู้ใช้สามารถคลิกฟันเฟืองเพื่อปรับความละเอียด หรือเปิด/ปิดซับไตเติลบนหน้าจอวิดีโอได้โดยตรง
+### 1. Minimalist Display Area
+* **Removed**: The large `80s` pixel art text and cassette emoji `📼` from the standby screen.
+* **Removed**: Headphone, cat, and disc emojis (`🐱🎧 💽`) from the top-right overlay.
+* **Refined**: Clean, modern typography with a sleek, minimalist `● ON AIR` live indicator.
 
-### 2. เพิ่มปุ่มลัด `💬 CC` บนแถบควบคุม Pixel Bar
-* เพิ่มปุ่ม `💬 CC` สีเหลือง/ชมพูบนแถบควบคุมเครื่องเล่นด้านล่าง เพื่อให้สามารถสั่งเปิด/ปิดคำบรรยายได้สะดวกจากแถบควบคุมหลักอีกทางหนึ่ง
+### 2. Full English Localization
+* Converted all UI text, tooltips, placeholders, button labels, and system notifications from Thai and Japanese into clean, concise English.
+* Replaced background neon signage in the SVG landscape with retro English/Romaji signage (`MIDNIGHT`, `CITY POP`, `NIGHT FLIGHT BAR`, `CAFE 80s`).
 
----
-
-## 📦 [Version 1.1.0] — ล้างเพลงที่ติดลิขสิทธิ์และปรับระบบเพิ่มคิวให้เป็นอิสระ
-*วันที่ปรับปรุง: 24 สิงหาคม 2026*
-
-### 1. ลบปุ่ม "เพลงแนะนำ (+5)" และล้างคิวเพลงเริ่มต้น
-* **ปัญหาเดิม**: ตัวแอปมีการใส่เพลง City Pop ตัวอย่างในตำนาน (เช่น Plastic Love, Stay With Me) มาให้ตั้งแต่เริ่ม แต่เมื่อนำไปรันจริง วิดีโอเหล่านั้นถูกบล็อกลิขสิทธิ์จากทางสมาคมเพลงญี่ปุ่น (RIAJ) ทำให้หน้าจอขึ้นข้อความ "ดูวิดีโอไม่ได้เนื่องจากละเมิดลิขสิทธิ์"
-* **สิ่งที่แก้ไข**: 
-  * ลบปุ่ม "เพลงแนะนำ (+5)" ออกจากแถบเมนูด้านบน
-  * ล้างรายการเพลงเริ่มต้นทั้งหมด ทำให้แอปพลิเคชันเริ่มทำงานด้วยคิวว่างเปล่า 100% รอรับลิงก์จากผู้ใช้โดยตรง
-
-### 2. ลบแท็บ "คลังเพลง" (Curated Library)
-* ลบแท็บคลังเพลงสำเร็จรูปออกจากพาเนลด้านขวา เพื่อป้องกันการกดเลือกเพลงที่อาจติดปัญหาเรื่องลิขสิทธิ์ คงเหลือไว้เฉพาะแท็บ **"📋 คิวเพลง"** และ **"📜 ประวัติ"**
-
-### 3. ลบเมนู "เลือกเพลงด่วน" และระบบแย่งการเล่นอัตโนมัติ
-* **ปัญหาเดิม**: มีการใส่ระบบที่หากคิวว่างอยู่ แล้วผู้ใช้กดเพิ่มเพลง เพลงนั้นจะถูกบังคับเล่นทันที และมีเมนูดรอปดาวน์เลือกเพลงด่วนที่อาจมีเพลงติดลิขสิทธิ์
-* **สิ่งที่แก้ไข**: 
-  * ลบเมนูดรอปดาวน์เลือกเพลงด่วน
-  * ปรับพฤติกรรมของปุ่ม **"เพิ่มคิว"**: เมื่อผู้ใช้วาง URL แล้วกดเพิ่มคิว เพลงจะถูกใส่เข้าไปรอในรายการคิวด้านขวาอย่างเป็นระเบียบ โดยไม่บังคับเริ่มเล่นทันที ผู้ใช้สามารถกดปุ่ม Play หรือเลือกเพลงที่ต้องการเล่นได้เอง
+### 3. Default Volume Adjustment
+* Set initial default volume level to **25%** (was 80%) for a more comfortable first-listen experience.
 
 ---
 
-## 📦 [Version 1.0.0] — Initial Release (เวอร์ชันแรกเริ่ม)
-*วันที่พัฒนา: 24 สิงหาคม 2026*
+## 📦 [Version 1.3.0] — Chronological History & Re-queue Fix
+*Release Date: August 24, 2026*
 
-### 1. สร้างสถาปัตยกรรม Single-File App แบบสมบูรณ์
-* ออกแบบไฟล์ `japanese-music-station.html` ไฟล์เดียวจบ รันได้ทันทีโดยไม่ต้อง Build
-* ติดตั้ง React 18, Babel Standalone และ Tailwind CSS ผ่านระบบ CDN
-* ติดตั้งฟอนต์ Google Fonts สไตล์เรโทร (`Press Start 2P`, `VT323`, `DotGothic16`)
+### 1. Chronological History Numbering
+* Updated history tracking to append sequentially so that the 1st song played is labeled **1.**, the 2nd song **2.**, and subsequent tracks follow natural chronological order.
 
-### 2. วาดฉากหลังพิกเซลอาร์ตเมืองญี่ปุ่นยามพลบค่ำ (Pixel Art Dusk Alleyway)
-* สร้างฉากหลังด้วย SVG คุณภาพสูง สไตล์ 16/32-Bit
-* วาดภูเขาไฟฟูจิ, โตเกียวทาวเวอร์, ป้ายไฟนีออนภาษาญี่ปุ่น, โคมไฟแดง และเสาไฟฟ้าพร้อมสายไฟ
-* ใส่เอฟเฟกต์เส้นสแกนทีวีเรโทร (CRT Scanline Filter) ที่สามารถกดเปิด/ปิดได้
-
-### 3. พัฒนาระบบ DJ Booth Player และ Queue Management
-* ออกแบบเลย์เอาต์ 65:35 รองรับหน้าจอคอมพิวเตอร์และมือถือ
-* เชื่อมต่อ YouTube IFrame Player API สำหรับสตรีมเพลง
-* สร้างระบบ Equalizer แท่งไฟพิกเซลเต้นตามจังหวะเพลง
-* เพิ่มระบบจำลองเสียงเอฟเฟกต์ 8-Bit (SFX Click, Coin, Delete) ด้วย Web Audio API
-* เชื่อมต่อ LocalStorage สำหรับบันทึกข้อมูลคิวเพลงและประวัติ ไม่ให้หายเมื่อรีเฟรชหน้าเว็บ
+### 2. Fixed "+ ADD TO QUEUE" in History
+* Fixed missing prop connection on the History re-add button. Clicking `+ ADD TO QUEUE` now reliably re-queues the track with sound effects and a toast alert.
 
 ---
 
-## 💡 สรุปขั้นตอนสำหรับผู้ใช้ Vibe Coding (คำแนะนำในการต่อยอด)
-1. **เมื่อต้องการเพิ่มลูกเล่นใหม่**: แจ้ง AI ให้แก้ไขที่ไฟล์ `index.html` โดยเน้นย้ำเรื่องคงสไตล์ Pixel Art (Zero border-radius และโทนสีตาม Palette)
-2. **การอัปเดตขึ้นเว็บจริง**: นำโค้ดที่ได้ไปบันทึก (Commit) ลงในไฟล์ `index.html` บน GitHub จากนั้น Netlify จะดึงโค้ดไปอัปเดตหน้าเว็บจริงให้อัตโนมัติ
-3. **การทดสอบวิดีโอ**: แนะนำให้ใช้ลิงก์จาก YouTube Official หรือคลิปที่ไม่ติดการบล็อกการฝัง (Embedding Restricted) เพื่อให้เล่นบนแอปได้อย่างราบรื่น
+## 📦 [Version 1.2.0] — YouTube Native Controls & CC Support
+*Release Date: August 24, 2026*
+
+### 1. Enabled YouTube Native Controls (`controls: 1`)
+* Enabled native player toolbar inside the 16:9 display, restoring the Settings Gear (⚙️) for video resolution (1080p/720p/4K) and the native CC subtitle button.
+
+### 2. Dedicated CC Pixel Button
+* Added a dedicated `CC` shortcut toggle button on the bottom retro transport bar.
+
+---
+
+## 📦 [Version 1.1.0] — Copyright Cleanup & Pure Queue Mode
+*Release Date: August 24, 2026*
+
+### 1. Removed Copyrighted Presets
+* Removed the "+5 Recommended" button and pre-loaded sample songs that were subject to region blocks/takedowns.
+* Removed the "Curated Library" tab and quick-select dropdown.
+* Configured the queue to start cleanly at 0 tracks.
+
+### 2. Independent Queue Workflow
+* Adding a track via URL now cleanly appends to the queue without forcefully hijacking or auto-playing if the player is idle.
+
+---
+
+## 📦 [Version 1.0.0] — Initial Release
+*Release Date: August 24, 2026*
+
+* Single-file architecture with React 18, Babel Standalone, and Tailwind CSS CDN.
+* 16/32-bit procedural SVG dusk cityscape background with Mt. Fuji, power lines, and CRT scanline filter.
+* 65:35 responsive layout with YouTube IFrame API integration and 8-bit Web Audio SFX.
