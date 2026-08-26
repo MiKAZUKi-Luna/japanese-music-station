@@ -4,22 +4,24 @@ Chronological record of all updates, bug fixes, and refinements for **Japanese M
 
 ---
 
+## 📦 [Version 1.5.4] — Universal CORS-Free YouTube Search Engine 🔍
+*Release Date: August 26, 2026*
+
+### 1. Fixed CORS Block on YouTube Search
+* **Problem**: Invidious API instances blocked cross-origin requests from `*.netlify.app` with CORS 403 / 401 errors, leaving the search modal in an endless loading state.
+* **Solution**: Rebuilt the search engine with a **Multi-Tier CORS-Free Architecture**:
+  * **Tier 1 (Official YouTube Parser)**: Scrapes and parses official `ytInitialData` directly via reliable CORS proxies, returning live YouTube search results.
+  * **Tier 2 (Piped API Fallback)**: Multi-instance Piped API endpoints configured with `Access-Control-Allow-Origin: *`.
+  * **Tier 3 (Proxied Invidious)**: Invidious API piped through CORS proxies.
+  * **Tier 4 (Direct URL / ID Parser)**: Instant recognition and parsing when a direct YouTube link is entered into the search bar.
+
+---
+
 ## 📦 [Version 1.5.3] — Unified Button System & Group Dimensions 📐
 *Release Date: August 25, 2026*
 
-### 1. Unified Button State Styling
-* **Universal Color States**: Standardized all buttons across the app to share identical visual feedback:
-  * **[Unclicked / Default]**: White text (`#FFFFFF`), dark purple background (`#2A2238`), and lighter contrast pixel border (`#3D2F4C`).
-  * **[Clicked / Active]**: Dark text (`#131021`), bright neon pink background (`#F57D7C`), and gold contrast border (`#FFC061`).
-* Eliminates inconsistent color mismatches across active tabs, transport modes, speed buttons, and utility toggles.
-
-### 2. Group Button Sizing & Dimensions
-* **Tabs**: `QUEUE` and `HISTORY` tabs are now perfectly symmetrical with equal 50/50 width and height (44px).
-* **Transport Controls**: `Previous`, `Play/Pause`, and `Next` buttons share matching unified heights (46px).
-* **Mode Toggles**: `Loop`, `Shuffle`, and `CC` share identical dimensions (40px height, 95px min-width).
-* **Speed Selectors**: `0.75x`, `1x`, `1.25x`, and `1.5x` share matching dimensions (32px height, 54px width).
-* **Form Action Buttons**: `ADD URL` and `SEARCH` share matching dimensions (44px height, 110px min-width).
-* **Header Buttons**: `SFX` button sized to 38px height and 110px min-width (prepared for matching `AMBIENCE` button).
+* Standardized all button states across the app (`[unclicked]` vs `[clicked]`).
+* Harmonized dimensions across button groups (Tabs, Transport, Modes, Speeds, Form actions).
 
 ---
 

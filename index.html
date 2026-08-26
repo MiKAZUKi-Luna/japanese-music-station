@@ -98,11 +98,7 @@
       background-color: rgba(19, 16, 33, 0.98);
     }
 
-    /* ==========================================================================
-       UNIFIED BUTTON DESIGN SYSTEM (Consistent unclicked vs clicked states)
-       ========================================================================== */
-    
-    /* Default / Unclicked state: White text, dark background, lighter contrast border */
+    /* Unified Button System */
     .pixel-btn, .btn-unclicked {
       display: inline-flex;
       align-items: center;
@@ -141,7 +137,6 @@
       border-color: #3D2F4C !important;
     }
 
-    /* Active / Clicked state: Dark text, bright neon/gold background, contrast border */
     .btn-clicked {
       display: inline-flex;
       align-items: center;
@@ -171,7 +166,6 @@
       box-shadow: 2px 2px 0px #000;
     }
 
-    /* Danger / Action variants */
     .pixel-btn-danger {
       background-color: #A2536A;
       color: #FFF;
@@ -405,10 +399,8 @@
 
     // --- MAIN PARENT COMPONENT ---
     function App() {
-      // EXACT DATA STRUCTURE:
-      // queue: Array<Track>, currentTrack: Track | null, history: Array<Track>, isPlaying: bool, playerStatus: string, volume: number
       const [queue, setQueue] = useState(() => {
-        const saved = safeGet('jms_queue_v9', null);
+        const saved = safeGet('jms_queue_v10', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -416,7 +408,7 @@
       });
 
       const [currentTrack, setCurrentTrack] = useState(() => {
-        const saved = safeGet('jms_current_v9', null);
+        const saved = safeGet('jms_current_v10', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -424,7 +416,7 @@
       });
 
       const [history, setHistory] = useState(() => {
-        const saved = safeGet('jms_history_v9', null);
+        const saved = safeGet('jms_history_v10', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -436,7 +428,7 @@
       
       // Default volume: 25%
       const [volume, setVolume] = useState(() => {
-        const saved = safeGet('jms_volume_v9', null);
+        const saved = safeGet('jms_volume_v10', null);
         return saved !== null ? Number(saved) : 25;
       });
 
@@ -470,10 +462,10 @@
       useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
       // Persist state
-      useEffect(() => { safeSet('jms_queue_v9', JSON.stringify(queue)); }, [queue]);
-      useEffect(() => { safeSet('jms_current_v9', JSON.stringify(currentTrack)); }, [currentTrack]);
-      useEffect(() => { safeSet('jms_history_v9', JSON.stringify(history)); }, [history]);
-      useEffect(() => { safeSet('jms_volume_v9', volume.toString()); }, [volume]);
+      useEffect(() => { safeSet('jms_queue_v10', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { safeSet('jms_current_v10', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { safeSet('jms_history_v10', JSON.stringify(history)); }, [history]);
+      useEffect(() => { safeSet('jms_volume_v10', volume.toString()); }, [volume]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
@@ -499,7 +491,7 @@
         return () => window.removeEventListener('keydown', handleKeyDown);
       }, [isSearchOpen]);
 
-      // Initialize YouTube API safely
+      // Initialize YouTube API safely (No empty videoId to prevent Error 153)
       useEffect(() => {
         window.onYouTubeIframeAPIReady = () => {
           initYTPlayer();
@@ -527,7 +519,7 @@
             width: '100%',
             playerVars: {
               autoplay: 0,
-              controls: 1,
+              controls: 1, // Full native YouTube controls (Settings Gear & CC Subtitles)
               fs: 1,
               rel: 0,
               playsinline: 1,
@@ -611,7 +603,7 @@
         };
       }, [isPlaying]);
 
-      // Auto Advance on song end
+      // Auto Advance on song end: Append played track to History in chronological order
       function handleTrackEnded() {
         const currentMode = loopModeRef.current;
         const cur = currentTrackRef.current;
@@ -921,10 +913,9 @@
       return (
         <div className="app-wrapper">
           
-          {/* Header Navigation Bar (Music Note Icon, Standardized Buttons) */}
+          {/* Header Navigation Bar */}
           <header className="pixel-frame m-3 mb-0 p-3 flex flex-wrap items-center justify-between gap-3 bg-[#1D1728]/90">
             <div className="flex items-center space-x-3">
-              {/* Music Note Pixel Icon Box */}
               <div className="w-10 h-10 bg-[#F57D7C] border-2 border-[#FFC061] flex items-center justify-center text-[#131021] text-2xl font-bold shadow-[2px_2px_0px_#000]">
                 ♫
               </div>
@@ -943,7 +934,7 @@
               </div>
             </div>
 
-            {/* Utility Toggles (SFX Toggle with Consistent Button System) */}
+            {/* Utility Toggles */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={() => {
@@ -1095,7 +1086,7 @@
       return (
         <div className="flex flex-col gap-3">
           
-          {/* 16:9 YouTube Screen + DJ Frame (Clean Standby without Search Button) */}
+          {/* 16:9 YouTube Screen + DJ Frame */}
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col">
             <div className="flex items-center justify-between mb-2 text-xs font-['Press_Start_2P'] text-[#FFC061]">
               <div className="flex items-center gap-2">
@@ -1243,7 +1234,7 @@
             </form>
           </div>
 
-          {/* TRANSPORT CONTROLS & AUDIO SETTINGS (Equal Height & Proportions per Group) */}
+          {/* TRANSPORT CONTROLS & AUDIO SETTINGS */}
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               
@@ -1303,7 +1294,7 @@
                 </button>
               </div>
 
-              {/* Speed Controller Group: 0.75x, 1x, 1.25x, 1.5x (Identical Dimensions) */}
+              {/* Speed Controller Group */}
               <div className="flex items-center gap-1">
                 <span className="text-xs font-['Press_Start_2P'] text-[#E08573] mr-1">SPEED:</span>
                 {[0.75, 1, 1.25, 1.5].map((rate) => (
@@ -1363,7 +1354,7 @@
       );
     }
 
-    // --- RIGHT PANEL COMPONENT (Equal Tabs & Clean Layout) ---
+    // --- RIGHT PANEL COMPONENT ---
     function RightQueuePanel({
       queue,
       history,
@@ -1380,7 +1371,7 @@
       return (
         <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full min-h-[500px]">
           
-          {/* Panel Header & Navigation Tabs (Exact Equal Width & Height) */}
+          {/* Panel Header & Navigation Tabs */}
           <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2">
             <button 
               onClick={() => { sfx.switch(); setActiveTab('queue'); }}
@@ -1496,7 +1487,7 @@
             </div>
           )}
 
-          {/* TAB 2: PLAYBACK HISTORY (Chronological numbering: 1., 2., 3....) */}
+          {/* TAB 2: PLAYBACK HISTORY */}
           {activeTab === 'history' && (
             <div className="flex flex-col flex-1 justify-between">
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
@@ -1564,7 +1555,7 @@
       );
     }
 
-    // --- RETRO ARCADE SEARCH POP-UP MODAL COMPONENT ---
+    // --- RETRO ARCADE SEARCH POP-UP MODAL (100% CORS-FREE MULTI-TIER ENGINE) ---
     function ArcadeSearchModal({ onClose, onAddTrack, onPlayTrack, showToast }) {
       const [searchQuery, setSearchQuery] = useState('');
       const [isSearching, setIsSearching] = useState(false);
@@ -1586,72 +1577,159 @@
         setIsSearching(true);
         setResults([]);
 
+        // Tier 0: Direct YouTube URL or Video ID
         const directId = extractVideoId(q);
         if (directId) {
           const title = await fetchVideoTitle(directId);
           setResults([{
             videoId: directId,
             title: title,
-            author: 'Direct URL Input',
-            lengthSeconds: 0
+            author: 'Direct YouTube Link',
+            lengthText: '--:--'
           }]);
           setIsSearching(false);
           return;
         }
 
-        const endpoints = [
-          `https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-          `https://invidious.nerdvpn.de/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-          `https://invidious.drgns.space/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
-          `https://iv.datura.network/api/v1/search?q=${encodeURIComponent(q)}&type=video`
+        let searchSuccess = false;
+
+        // Tier 1: Real YouTube Official Search HTML parser via CORS Proxies
+        const corsProxies = [
+          `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
+          `https://corsproxy.io/?${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
+          `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`
         ];
 
-        let found = false;
-        for (const ep of endpoints) {
+        for (const proxyUrl of corsProxies) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000);
-            const res = await fetch(ep, { signal: controller.signal });
+            const timeoutId = setTimeout(() => controller.abort(), 4800);
+            const res = await fetch(proxyUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
 
             if (res.ok) {
-              const data = await res.json();
-              if (Array.isArray(data) && data.length > 0) {
-                const cleanResults = data
-                  .filter(item => item.videoId || item.id)
-                  .map(item => ({
-                    videoId: item.videoId || item.id,
-                    title: item.title || 'Untitled Track',
-                    author: item.author || item.authorText || 'Artist',
-                    lengthSeconds: item.lengthSeconds || 0
-                  }))
-                  .slice(0, 15);
-                
-                if (cleanResults.length > 0) {
-                  setResults(cleanResults);
-                  found = true;
-                  break;
+              const htmlText = await res.text();
+              const jsonMatch = htmlText.match(/var ytInitialData\s*=\s*({.*?});<\/script>/s) || htmlText.match(/ytInitialData\s*=\s*({.*?});/s);
+              if (jsonMatch && jsonMatch[1]) {
+                const parsedData = JSON.parse(jsonMatch[1]);
+                const sectionList = parsedData?.contents?.twoColumnSearchResultsRenderer?.primaryContents?.sectionListRenderer?.contents;
+                if (Array.isArray(sectionList)) {
+                  const extracted = [];
+                  for (const section of sectionList) {
+                    const itemContents = section?.itemSectionRenderer?.contents;
+                    if (Array.isArray(itemContents)) {
+                      for (const item of itemContents) {
+                        const vr = item?.videoRenderer;
+                        if (vr && vr.videoId) {
+                          const titleText = vr.title?.runs?.[0]?.text || vr.title?.accessibility?.accessibilityData?.label || 'YouTube Track';
+                          const authorText = vr.ownerText?.runs?.[0]?.text || vr.shortBylineText?.runs?.[0]?.text || 'YouTube Artist';
+                          const durationText = vr.lengthText?.simpleText || vr.lengthText?.runs?.[0]?.text || '';
+                          extracted.push({
+                            videoId: vr.videoId,
+                            title: titleText,
+                            author: authorText,
+                            lengthText: durationText
+                          });
+                        }
+                      }
+                    }
+                  }
+                  if (extracted.length > 0) {
+                    setResults(extracted.slice(0, 15));
+                    searchSuccess = true;
+                    break;
+                  }
                 }
               }
             }
-          } catch (e) {}
+          } catch (e) {
+            // try next proxy
+          }
         }
 
-        if (!found) {
-          try {
-            const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${q}`);
-            if (res.ok) {
-              const data = await res.json();
-              if (data && data.title) {
-                setResults([{ videoId: q, title: data.title, author: 'YouTube Track', lengthSeconds: 0 }]);
-                found = true;
-              }
-            }
-          } catch (e) {}
+        // Tier 2: Piped API Endpoints with Native CORS
+        if (!searchSuccess) {
+          const pipedEndpoints = [
+            `https://api.piped.private.coffee/search?q=${encodeURIComponent(q)}&filter=videos`,
+            `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`,
+            `https://piped-api.garudalinux.org/search?q=${encodeURIComponent(q)}&filter=videos`
+          ];
 
-          if (!found) {
-            showToast('Search service busy. You can also paste a direct YouTube URL.');
+          for (const ep of pipedEndpoints) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 4000);
+              const res = await fetch(ep, { signal: controller.signal });
+              clearTimeout(timeoutId);
+
+              if (res.ok) {
+                const data = await res.json();
+                const items = data.items || data;
+                if (Array.isArray(items) && items.length > 0) {
+                  const clean = items
+                    .filter(i => (i.url && i.url.includes('watch?v=')) || i.id || i.videoId)
+                    .map(i => {
+                      const id = i.id || i.videoId || (i.url ? i.url.split('watch?v=')[1]?.split('&')[0] : '');
+                      return {
+                        videoId: id,
+                        title: i.title || 'Untitled Track',
+                        author: i.uploaderName || i.uploader || 'Artist',
+                        lengthText: i.duration ? formatTime(i.duration) : ''
+                      };
+                    })
+                    .filter(i => i.videoId);
+                  
+                  if (clean.length > 0) {
+                    setResults(clean.slice(0, 15));
+                    searchSuccess = true;
+                    break;
+                  }
+                }
+              }
+            } catch (e) {}
           }
+        }
+
+        // Tier 3: Invidious Instances via CORS Proxy
+        if (!searchSuccess) {
+          const invidiousProxies = [
+            `https://api.allorigins.win/raw?url=${encodeURIComponent('https://inv.nadeko.net/api/v1/search?q=' + encodeURIComponent(q) + '&type=video')}`,
+            `https://corsproxy.io/?${encodeURIComponent('https://inv.nadeko.net/api/v1/search?q=' + encodeURIComponent(q) + '&type=video')}`
+          ];
+
+          for (const p of invidiousProxies) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 4000);
+              const res = await fetch(p, { signal: controller.signal });
+              clearTimeout(timeoutId);
+
+              if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) {
+                  const clean = data
+                    .filter(i => i.videoId || i.id)
+                    .map(i => ({
+                      videoId: i.videoId || i.id,
+                      title: i.title || 'Untitled Track',
+                      author: i.author || i.authorText || 'Artist',
+                      lengthText: i.lengthSeconds ? formatTime(i.lengthSeconds) : ''
+                    }))
+                    .slice(0, 15);
+                  
+                  if (clean.length > 0) {
+                    setResults(clean);
+                    searchSuccess = true;
+                    break;
+                  }
+                }
+              }
+            } catch (e) {}
+          }
+        }
+
+        if (!searchSuccess) {
+          showToast('Search service busy. You can paste direct YouTube URLs.');
         }
 
         setIsSearching(false);
@@ -1759,9 +1837,9 @@
                         </span>
                         <div className="flex items-center gap-2 text-xs font-['Silkscreen'] text-gray-400">
                           <span className="truncate">{item.author}</span>
-                          {item.lengthSeconds > 0 && (
+                          {item.lengthText && (
                             <span className="px-1.5 py-0.2 bg-[#131021] border border-[#3D2F4C] text-[#FFC061]">
-                              {formatTime(item.lengthSeconds)}
+                              {item.lengthText}
                             </span>
                           )}
                         </div>
