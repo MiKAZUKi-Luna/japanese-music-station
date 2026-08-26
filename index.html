@@ -12,39 +12,11 @@
   
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            skyTop: '#1F1A3A',
-            skyMid: '#5B3256',
-            skySunset: '#A2536A',
-            skyDusk: '#E08573',
-            bldgShadow: '#131021',
-            wallBase: '#2A2238',
-            warmLight: '#FFC061',
-            neonPink: '#F57D7C',
-            panelBg: 'rgba(29, 23, 40, 0.88)',
-            pixelBorder: '#3D2F4C',
-          },
-          fontFamily: {
-            header: ['"Press Start 2P"', 'monospace'],
-            body: ['"VT323"', 'monospace'],
-            sub: ['"Silkscreen"', 'monospace'],
-          },
-          screens: {
-            'custom-lg': '900px',
-          }
-        }
-      }
-    }
-  </script>
 
-  <!-- React 18 & Babel Standalone via CDN -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
+  <!-- React 18 & Babel Standalone (Cloudflare CDNjs + unpkg fallback) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.4/babel.min.js"></script>
 
   <style>
     /* STYLING CONSTRAINTS: ZERO border-radius anywhere, pure pixel art */
@@ -60,87 +32,146 @@
       font-family: 'VT323', monospace;
       overflow-x: hidden;
       user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Core 65:35 Responsive Grid & Flex Layouts (100% Self-Contained CSS) */
+    .app-wrapper {
+      max-width: 1650px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .main-workspace {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 12px;
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (min-width: 900px) {
+      .main-workspace {
+        flex-direction: row;
+        align-items: stretch;
+      }
+      .panel-left-container {
+        width: 65%;
+        flex: 0 0 65%;
+        min-width: 0;
+      }
+      .panel-right-container {
+        width: 35%;
+        flex: 0 0 35%;
+        min-width: 0;
+      }
+    }
+
+    @media (max-width: 899px) {
+      .panel-left-container, .panel-right-container {
+        width: 100%;
+        min-width: 0;
+      }
     }
 
     /* Pixel Art Borders & Shadows */
     .pixel-frame {
       border: 3px solid #3D2F4C;
       box-shadow: 4px 4px 0px #000;
-      background-color: rgba(29, 23, 40, 0.88);
+      background-color: rgba(29, 23, 40, 0.90);
     }
 
     .pixel-frame-inset {
       border: 3px solid #3D2F4C;
       box-shadow: inset 3px 3px 0px #131021, inset -3px -3px 0px #3D2F4C;
-      background-color: rgba(19, 16, 33, 0.95);
+      background-color: rgba(19, 16, 33, 0.96);
     }
 
-    .pixel-btn {
+    .pixel-frame-arcade {
+      border: 4px solid #F57D7C;
+      box-shadow: 8px 8px 0px #000;
+      background-color: rgba(19, 16, 33, 0.98);
+    }
+
+    /* ==========================================================================
+       UNIFIED BUTTON DESIGN SYSTEM (Consistent unclicked vs clicked states)
+       ========================================================================== */
+    
+    /* Default / Unclicked state: White text, dark background, lighter contrast border */
+    .pixel-btn, .btn-unclicked {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       border: 3px solid #3D2F4C;
       box-shadow: 4px 4px 0px #000;
       background-color: #2A2238;
-      color: #FFF;
+      color: #FFFFFF;
       cursor: pointer;
       font-family: 'VT323', monospace;
       font-size: 1.25rem;
       letter-spacing: 0.05em;
+      padding: 4px 10px;
+      text-align: center;
       transition: transform 0.05s steps(1), box-shadow 0.05s steps(1), background-color 0.05s steps(1);
     }
 
-    .pixel-btn:hover {
+    .pixel-btn:hover, .btn-unclicked:hover {
       background-color: #3D2F4C;
       color: #FFC061;
+      border-color: #5B3256;
     }
 
-    .pixel-btn:active {
+    .pixel-btn:active, .btn-unclicked:active {
       transform: translate(2px, 2px);
       box-shadow: 2px 2px 0px #000;
     }
 
-    .pixel-btn:disabled {
-      opacity: 0.45;
+    .pixel-btn:disabled, .btn-unclicked:disabled {
+      opacity: 0.40;
       cursor: not-allowed;
       transform: none !important;
       box-shadow: 4px 4px 0px #000 !important;
       background-color: #2A2238 !important;
       color: #777 !important;
+      border-color: #3D2F4C !important;
     }
 
-    .pixel-btn-primary {
-      background-color: #E08573;
-      color: #131021;
-      border-color: #FFC061;
-      font-weight: bold;
-    }
-    .pixel-btn-primary:hover {
-      background-color: #FFC061;
-      color: #131021;
-    }
-
-    .pixel-btn-neon {
+    /* Active / Clicked state: Dark text, bright neon/gold background, contrast border */
+    .btn-clicked {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid #FFC061;
+      box-shadow: 4px 4px 0px #000;
       background-color: #F57D7C;
       color: #131021;
-      border-color: #FFC061;
+      cursor: pointer;
+      font-family: 'VT323', monospace;
+      font-size: 1.25rem;
       font-weight: bold;
+      letter-spacing: 0.05em;
+      padding: 4px 10px;
+      text-align: center;
+      transition: transform 0.05s steps(1), box-shadow 0.05s steps(1), background-color 0.05s steps(1);
     }
-    .pixel-btn-neon:hover {
+
+    .btn-clicked:hover {
       background-color: #FFA5A4;
       color: #131021;
+      border-color: #FFE0A3;
     }
 
-    .pixel-btn-warning {
-      background-color: #FFC061;
-      color: #131021;
-      border-color: #E08573;
-    }
-    .pixel-btn-warning:hover {
-      background-color: #FFE0A3;
-      color: #131021;
+    .btn-clicked:active {
+      transform: translate(2px, 2px);
+      box-shadow: 2px 2px 0px #000;
     }
 
+    /* Danger / Action variants */
     .pixel-btn-danger {
       background-color: #A2536A;
       color: #FFF;
@@ -151,6 +182,54 @@
       color: #FFF;
     }
 
+    /* Standardized Group Sizes */
+    .btn-header {
+      height: 38px;
+      min-width: 110px;
+      font-size: 1.15rem;
+    }
+
+    .btn-tab {
+      height: 44px;
+      flex: 1;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+
+    .btn-primary-transport {
+      height: 46px;
+      font-size: 1.3rem;
+    }
+    .btn-transport-prev-next {
+      height: 46px;
+      width: 58px;
+      font-size: 1.3rem;
+    }
+    .btn-transport-play {
+      height: 46px;
+      min-width: 100px;
+      font-size: 1.3rem;
+    }
+
+    .btn-mode-group {
+      height: 40px;
+      min-width: 95px;
+      font-size: 1.15rem;
+    }
+
+    .btn-speed {
+      height: 32px;
+      width: 54px;
+      font-size: 1.05rem;
+    }
+
+    .btn-form-action {
+      height: 44px;
+      min-width: 110px;
+      font-size: 1.2rem;
+    }
+
+    /* Inputs */
     .pixel-input {
       border: 3px solid #3D2F4C;
       background-color: #131021;
@@ -160,6 +239,7 @@
       padding: 6px 12px;
       box-shadow: inset 3px 3px 0px #000;
       outline: none;
+      width: 100%;
     }
     .pixel-input:focus {
       border-color: #F57D7C;
@@ -181,17 +261,6 @@
     }
     ::-webkit-scrollbar-thumb:hover {
       background: #E08573;
-    }
-
-    /* CRT Scanline effect */
-    .scanlines {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.28) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
-      background-size: 100% 4px, 6px 100%;
-      pointer-events: none;
-      z-index: 999;
-      opacity: 0.65;
     }
 
     /* Step-based retro animations */
@@ -222,19 +291,32 @@
     .star-3 { animation: starBlink 3.1s steps(3) infinite 1.2s; }
   </style>
 </head>
-<body class="min-h-screen relative flex flex-col justify-between overflow-x-hidden selection:bg-neonPink selection:text-bldgShadow">
+<body class="min-h-screen relative flex flex-col justify-between overflow-x-hidden selection:bg-[#F57D7C] selection:text-[#131021]">
 
   <!-- Background Dusk Cityscape SVG Layer (Minimalist 16/32-Bit Pixel Art) -->
   <div id="cityscape-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-  <!-- CRT Scanline Overlay (Toggleable) -->
-  <div id="crt-overlay" class="scanlines"></div>
-
   <!-- React Root Container -->
   <div id="root" class="relative z-10 min-h-screen flex flex-col"></div>
 
+  <!-- Main Application Script (Babel Standalone JSX) -->
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
+
+    // Safe LocalStorage helpers
+    function safeGet(key, fallback) {
+      try {
+        const val = localStorage.getItem(key);
+        return val !== null ? val : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+    function safeSet(key, val) {
+      try {
+        localStorage.setItem(key, val);
+      } catch (e) {}
+    }
 
     // SFX Sound Generator (8-bit Web Audio Synthesizer)
     class SoundFX {
@@ -264,9 +346,7 @@
           gain.connect(this.ctx.destination);
           osc.start();
           osc.stop(this.ctx.currentTime + duration);
-        } catch (e) {
-          // ignore audio context policy before user gesture
-        }
+        } catch (e) {}
       }
       click() { this.playTone(880, 'square', 0.04, 0.03); }
       coin() {
@@ -275,6 +355,10 @@
       }
       delete() { this.playTone(220, 'sawtooth', 0.08, 0.04); }
       switch() { this.playTone(523.25, 'triangle', 0.05, 0.04); }
+      open() {
+        this.playTone(440, 'square', 0.05, 0.04);
+        setTimeout(() => this.playTone(659.25, 'square', 0.08, 0.04), 50);
+      }
     }
     const sfx = new SoundFX();
 
@@ -307,9 +391,7 @@
           const data = await res.json();
           if (data && data.title) return data.title;
         }
-      } catch (err) {
-        console.warn('oEmbed fetch error:', err);
-      }
+      } catch (err) {}
       return `YouTube Video [${videoId}]`;
     }
 
@@ -326,7 +408,7 @@
       // EXACT DATA STRUCTURE:
       // queue: Array<Track>, currentTrack: Track | null, history: Array<Track>, isPlaying: bool, playerStatus: string, volume: number
       const [queue, setQueue] = useState(() => {
-        const saved = localStorage.getItem('jms_queue_v3');
+        const saved = safeGet('jms_queue_v9', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -334,7 +416,7 @@
       });
 
       const [currentTrack, setCurrentTrack] = useState(() => {
-        const saved = localStorage.getItem('jms_current_v3');
+        const saved = safeGet('jms_current_v9', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -342,7 +424,7 @@
       });
 
       const [history, setHistory] = useState(() => {
-        const saved = localStorage.getItem('jms_history_v3');
+        const saved = safeGet('jms_history_v9', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -352,9 +434,9 @@
       const [isPlaying, setIsPlaying] = useState(false);
       const [playerStatus, setPlayerStatus] = useState('empty'); // "playing" | "paused" | "empty"
       
-      // Default volume set to 25%
+      // Default volume: 25%
       const [volume, setVolume] = useState(() => {
-        const saved = localStorage.getItem('jms_volume_v3');
+        const saved = safeGet('jms_volume_v9', null);
         return saved !== null ? Number(saved) : 25;
       });
 
@@ -365,9 +447,11 @@
       const [loopMode, setLoopMode] = useState('none'); // 'none' | 'one' | 'all'
       const [playbackRate, setPlaybackRate] = useState(1);
       const [ccEnabled, setCcEnabled] = useState(false);
-      const [crtEnabled, setCrtEnabled] = useState(true);
       const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
       const [toastMsg, setToastMsg] = useState(null);
+
+      // Search Arcade Modal State
+      const [isSearchOpen, setIsSearchOpen] = useState(false);
 
       // Refs to prevent stale closures in YouTube Player event callbacks
       const queueRef = useRef(queue);
@@ -386,22 +470,36 @@
       useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
       // Persist state
-      useEffect(() => { localStorage.setItem('jms_queue_v3', JSON.stringify(queue)); }, [queue]);
-      useEffect(() => { localStorage.setItem('jms_current_v3', JSON.stringify(currentTrack)); }, [currentTrack]);
-      useEffect(() => { localStorage.setItem('jms_history_v3', JSON.stringify(history)); }, [history]);
-      useEffect(() => { localStorage.setItem('jms_volume_v3', volume.toString()); }, [volume]);
+      useEffect(() => { safeSet('jms_queue_v9', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { safeSet('jms_current_v9', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { safeSet('jms_history_v9', JSON.stringify(history)); }, [history]);
+      useEffect(() => { safeSet('jms_volume_v9', volume.toString()); }, [volume]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
         setTimeout(() => setToastMsg(null), 3000);
       };
 
+      // Keyboard Shortcut to open search (Press '/' or 'Ctrl+K')
       useEffect(() => {
-        const crt = document.getElementById('crt-overlay');
-        if (crt) crt.style.display = crtEnabled ? 'block' : 'none';
-      }, [crtEnabled]);
+        const handleKeyDown = (e) => {
+          if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            sfx.open();
+            setIsSearchOpen(true);
+          } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+            e.preventDefault();
+            sfx.open();
+            setIsSearchOpen(true);
+          } else if (e.key === 'Escape' && isSearchOpen) {
+            setIsSearchOpen(false);
+          }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+      }, [isSearchOpen]);
 
-      // Initialize YouTube API with full controls enabled (Settings Gear & CC)
+      // Initialize YouTube API safely
       useEffect(() => {
         window.onYouTubeIframeAPIReady = () => {
           initYTPlayer();
@@ -424,13 +522,12 @@
       function initYTPlayer() {
         if (playerRef.current) return;
         try {
-          playerRef.current = new window.YT.Player('youtube-player-embed', {
+          const config = {
             height: '100%',
             width: '100%',
-            videoId: currentTrackRef.current ? currentTrackRef.current.videoId : '',
             playerVars: {
               autoplay: 0,
-              controls: 1, // Full native YouTube controls (Settings Gear & CC Subtitles)
+              controls: 1,
               fs: 1,
               rel: 0,
               playsinline: 1,
@@ -442,16 +539,22 @@
               onStateChange: onPlayerStateChange,
               onError: onPlayerError
             }
-          });
+          };
+
+          if (currentTrackRef.current && currentTrackRef.current.videoId) {
+            config.videoId = currentTrackRef.current.videoId;
+          }
+
+          playerRef.current = new window.YT.Player('youtube-player-embed', config);
         } catch (e) {
-          console.error('YT init failed:', e);
+          console.error('YT init error:', e);
         }
       }
 
       function onPlayerReady(event) {
         isPlayerReady.current = true;
         event.target.setVolume(volume);
-        if (currentTrackRef.current) {
+        if (currentTrackRef.current && currentTrackRef.current.videoId) {
           event.target.cueVideoById(currentTrackRef.current.videoId);
           setPlayerStatus('paused');
         }
@@ -481,11 +584,12 @@
       }
 
       function onPlayerError(event) {
-        console.warn('YT Player Error Code:', event.data);
-        showToast(`Video unavailable (Error ${event.data}) — Skipping to next track`);
-        setTimeout(() => {
-          handleNextTrack();
-        }, 1500);
+        if (event.data !== 153 && currentTrackRef.current) {
+          showToast(`Video unavailable (Code ${event.data}) — Skipping to next`);
+          setTimeout(() => {
+            handleNextTrack();
+          }, 1500);
+        }
       }
 
       // Progress bar ticker
@@ -507,7 +611,7 @@
         };
       }, [isPlaying]);
 
-      // Auto Advance on song end: Append played track to History in chronological order
+      // Auto Advance on song end
       function handleTrackEnded() {
         const currentMode = loopModeRef.current;
         const cur = currentTrackRef.current;
@@ -566,7 +670,7 @@
           if (queue.length > 0) {
             handleNextTrack();
           } else {
-            showToast('Please add a YouTube URL to the queue first');
+            showToast('Please add a track to the queue first');
           }
           return;
         }
@@ -697,7 +801,6 @@
               showToast('Subtitles Disabled');
             }
           } catch (e) {
-            console.warn('CC toggle error:', e);
             setCcEnabled(!ccEnabled);
           }
         } else {
@@ -727,6 +830,34 @@
         setQueue(prev => [...prev, newTrack]);
         showToast(`Added to queue: ${newTrack.title}`);
         return true;
+      };
+
+      const addDirectTrack = (videoId, title) => {
+        sfx.coin();
+        const newTrack = {
+          id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          videoId: videoId,
+          title: title || `YouTube Video [${videoId}]`,
+          addedAt: Date.now()
+        };
+        setQueue(prev => [...prev, newTrack]);
+        showToast(`Added: ${newTrack.title}`);
+      };
+
+      const playDirectTrack = (videoId, title) => {
+        sfx.coin();
+        const newTrack = {
+          id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+          videoId: videoId,
+          title: title || `YouTube Video [${videoId}]`,
+          addedAt: Date.now()
+        };
+        if (currentTrack) {
+          setHistory(prev => [...prev, currentTrack]);
+        }
+        setCurrentTrack(newTrack);
+        playTrackInPlayer(videoId);
+        showToast(`Playing: ${newTrack.title}`);
       };
 
       const handleRequeueFromHistory = (track) => {
@@ -788,45 +919,38 @@
       };
 
       return (
-        <div className="flex flex-col min-h-screen">
+        <div className="app-wrapper">
           
-          {/* Header Navigation Bar */}
-          <header className="pixel-frame m-3 mb-0 p-3 flex flex-wrap items-center justify-between gap-3 bg-panelBg">
+          {/* Header Navigation Bar (Music Note Icon, Standardized Buttons) */}
+          <header className="pixel-frame m-3 mb-0 p-3 flex flex-wrap items-center justify-between gap-3 bg-[#1D1728]/90">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-neonPink border-2 border-warmLight flex items-center justify-center text-bldgShadow font-header text-xl font-bold shadow-[2px_2px_0px_#000]">
-                J
+              {/* Music Note Pixel Icon Box */}
+              <div className="w-10 h-10 bg-[#F57D7C] border-2 border-[#FFC061] flex items-center justify-center text-[#131021] text-2xl font-bold shadow-[2px_2px_0px_#000]">
+                ♫
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="font-header text-sm sm:text-base text-neonPink tracking-wider">
+                  <h1 className="font-['Press_Start_2P'] text-sm sm:text-base text-[#F57D7C] tracking-wider">
                     JAPANESE MUSIC STATION
                   </h1>
-                  <span className="text-xs bg-skyMid px-1.5 py-0.5 border border-pixelBorder text-warmLight font-sub">
+                  <span className="text-xs bg-[#5B3256] px-1.5 py-0.5 border border-[#3D2F4C] text-[#FFC061] font-['Silkscreen']">
                     PIXEL × CITY POP
                   </span>
                 </div>
-                <p className="text-xs text-skySunset font-sub tracking-wide">
+                <p className="text-xs text-[#E08573] font-['Silkscreen'] tracking-wide">
                   City Pop Jukebox — 80s Dusk Alleyway DJ Booth
                 </p>
               </div>
             </div>
 
-            {/* Utility Toggles */}
+            {/* Utility Toggles (SFX Toggle with Consistent Button System) */}
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setCrtEnabled(!crtEnabled)}
-                className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${crtEnabled ? 'bg-neonPink text-bldgShadow font-bold' : 'bg-wallBase text-gray-400'}`}
-                title="Toggle CRT Scanline Effect"
-              >
-                CRT {crtEnabled ? 'ON' : 'OFF'}
-              </button>
-
               <button 
                 onClick={() => {
                   sfx.enabled = !sfx.enabled;
                   showToast(sfx.enabled ? '8-Bit SFX Enabled' : '8-Bit SFX Muted');
                 }}
-                className={`pixel-btn px-3 py-1 text-sm border-pixelBorder ${sfx.enabled ? 'text-warmLight bg-wallBase' : 'text-gray-500 bg-wallBase'}`}
+                className={`btn-header ${sfx.enabled ? 'btn-clicked' : 'btn-unclicked'}`}
                 title="Toggle 8-Bit Audio SFX"
               >
                 {sfx.enabled ? 'SFX ON' : 'SFX OFF'}
@@ -836,16 +960,16 @@
 
           {/* Toast Notification Banner */}
           {toastMsg && (
-            <div className="fixed top-20 right-6 z-50 pixel-frame border-warmLight bg-bldgShadow text-warmLight px-4 py-2 text-base font-body shadow-[4px_4px_0px_#000] pulse-pixel">
+            <div className="fixed top-20 right-6 z-50 pixel-frame border-[#FFC061] bg-[#131021] text-[#FFC061] px-4 py-2 text-base font-['VT323'] shadow-[4px_4px_0px_#000] pulse-pixel">
               {toastMsg}
             </div>
           )}
 
-          {/* Main 2-Column Grid Workspace (65% : 35% on Desktop, Stacks below 900px) */}
-          <main className="flex-1 p-3 flex flex-col custom-lg:flex-row gap-3 max-w-[1700px] w-full mx-auto">
+          {/* Main 2-Column Responsive Workspace (Strict 65% : 35% on Desktop) */}
+          <main className="main-workspace">
             
-            {/* LEFT PANEL (65% Width on Desktop) */}
-            <section className="w-full custom-lg:w-[65%] flex flex-col gap-3">
+            {/* LEFT PANEL (65% Width) */}
+            <div className="panel-left-container flex flex-col gap-3">
               <LeftPlayerPanel 
                 currentTrack={currentTrack}
                 isPlaying={isPlaying}
@@ -870,6 +994,7 @@
                 onAddTrack={addToQueue}
                 onClearQueue={clearAllQueue}
                 onShuffleQueue={handleShuffleQueue}
+                onOpenSearch={() => { sfx.open(); setIsSearchOpen(true); }}
                 onSetPlaybackRate={(rate) => {
                   setPlaybackRate(rate);
                   if (playerRef.current && isPlayerReady.current) {
@@ -878,10 +1003,10 @@
                   showToast(`Playback Speed: ${rate}x`);
                 }}
               />
-            </section>
+            </div>
 
-            {/* RIGHT PANEL (35% Width on Desktop) */}
-            <section className="w-full custom-lg:w-[35%] flex flex-col gap-3">
+            {/* RIGHT PANEL (35% Width) */}
+            <div className="panel-right-container flex flex-col gap-3">
               <RightQueuePanel 
                 queue={queue}
                 history={history}
@@ -895,27 +1020,37 @@
                 onClearHistory={clearHistory}
                 onRequeue={handleRequeueFromHistory}
               />
-            </section>
+            </div>
           </main>
 
           {/* Footer Status Bar */}
-          <footer className="pixel-frame m-3 mt-0 p-2 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-2 bg-panelBg font-sub">
+          <footer className="pixel-frame m-3 mt-0 p-2 text-xs text-gray-400 flex flex-wrap items-center justify-between gap-2 bg-[#1D1728]/90 font-['Silkscreen']">
             <div className="flex items-center gap-3">
-              <span className="inline-block w-2.5 h-2.5 bg-neonPink border border-warmLight"></span>
-              <span>STATION STATUS: <strong className="text-warmLight">{playerStatus.toUpperCase()}</strong></span>
+              <span className="inline-block w-2.5 h-2.5 bg-[#F57D7C] border border-[#FFC061]"></span>
+              <span>STATION STATUS: <strong className="text-[#FFC061]">{playerStatus.toUpperCase()}</strong></span>
               <span className="text-gray-600">|</span>
               <span>QUEUE: <strong className="text-white">{queue.length} TRACKS</strong></span>
             </div>
-            <div className="text-skyDusk flex items-center gap-2">
+            <div className="text-[#E08573] flex items-center gap-2">
               <span>PIXEL ART × CITY POP DJ BOOTH</span>
-              <span className="text-warmLight">Late Night Drive Music</span>
+              <span className="text-[#FFC061]">Late Night Drive Music</span>
             </div>
           </footer>
+
+          {/* RETRO ARCADE SEARCH POP-UP MODAL */}
+          {isSearchOpen && (
+            <ArcadeSearchModal 
+              onClose={() => setIsSearchOpen(false)}
+              onAddTrack={addDirectTrack}
+              onPlayTrack={playDirectTrack}
+              showToast={showToast}
+            />
+          )}
         </div>
       );
     }
 
-    // --- LEFT PANEL COMPONENT (Player, Now Playing, URL Input, Transport Controls) ---
+    // --- LEFT PANEL COMPONENT ---
     function LeftPlayerPanel({
       currentTrack,
       isPlaying,
@@ -940,6 +1075,7 @@
       onAddTrack,
       onClearQueue,
       onShuffleQueue,
+      onOpenSearch,
       onSetPlaybackRate
     }) {
       const [inputUrl, setInputUrl] = useState('');
@@ -959,52 +1095,52 @@
       return (
         <div className="flex flex-col gap-3">
           
-          {/* 16:9 YouTube Screen + DJ Frame */}
-          <div className="pixel-frame p-3 bg-panelBg flex flex-col">
-            <div className="flex items-center justify-between mb-2 text-xs font-header text-warmLight">
+          {/* 16:9 YouTube Screen + DJ Frame (Clean Standby without Search Button) */}
+          <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col">
+            <div className="flex items-center justify-between mb-2 text-xs font-['Press_Start_2P'] text-[#FFC061]">
               <div className="flex items-center gap-2">
-                <span className="inline-block w-2.5 h-2.5 bg-neonPink animate-pulse"></span>
+                <span className="inline-block w-2.5 h-2.5 bg-[#F57D7C] animate-pulse"></span>
                 <span>DJ BOOTH SCREEN (16:9)</span>
               </div>
-              <span className="text-skyDusk font-sub text-xs">
+              <span className="text-[#E08573] font-['Silkscreen'] text-xs">
                 {isPlaying ? '● ON AIR' : '■ STANDBY'}
               </span>
             </div>
 
             {/* Video Container (Strict 16:9 Aspect Ratio) */}
-            <div className="relative w-full pb-[56.25%] pixel-frame-inset bg-bldgShadow overflow-hidden group">
+            <div className="relative w-full pb-[56.25%] pixel-frame-inset bg-[#131021] overflow-hidden group">
               
               {/* Actual YouTube IFrame Mounting Element */}
               <div id="youtube-player-embed" className="absolute inset-0 w-full h-full"></div>
 
-              {/* Minimalist Display Area Overlay when empty (No emojis, no 80s text) */}
+              {/* Minimalist Display Area Overlay when empty */}
               {playerStatus === 'empty' && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-bldgShadow/95 z-20 p-6 text-center">
-                  <div className="font-header text-sm sm:text-base text-neonPink tracking-widest mb-2 border-b-2 border-pixelBorder pb-2">
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#131021]/95 z-20 p-6 text-center">
+                  <div className="font-['Press_Start_2P'] text-sm sm:text-base text-[#F57D7C] tracking-widest mb-2 border-b-2 border-[#3D2F4C] pb-2">
                     JAPANESE MUSIC STATION
                   </div>
-                  <p className="font-body text-base sm:text-lg text-skyDusk max-w-md">
-                    Paste a YouTube link below and click "ADD TO QUEUE" to start
+                  <p className="font-['VT323'] text-base sm:text-lg text-[#E08573] max-w-md">
+                    Search YouTube or paste a URL below to start your queue
                   </p>
                 </div>
               )}
 
-              {/* Minimalist On-Air Badge (Clean text, no emojis) */}
+              {/* Minimalist On-Air Badge */}
               {isPlaying && (
-                <div className="absolute top-2 right-2 bg-bldgShadow/85 border-2 border-pixelBorder px-2.5 py-1 flex items-center gap-1.5 z-10 pointer-events-none">
-                  <span className="inline-block w-2 h-2 bg-neonPink animate-pulse"></span>
-                  <span className="text-xs text-warmLight font-sub tracking-wider">ON AIR</span>
+                <div className="absolute top-2 right-2 bg-[#131021]/85 border-2 border-[#3D2F4C] px-2.5 py-1 flex items-center gap-1.5 z-10 pointer-events-none">
+                  <span className="inline-block w-2 h-2 bg-[#F57D7C] animate-pulse"></span>
+                  <span className="text-xs text-[#FFC061] font-['Silkscreen'] tracking-wider">ON AIR</span>
                 </div>
               )}
             </div>
 
             {/* Pixel Equalizer / Visualizer Bar */}
-            <div className="mt-2.5 pt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-3">
-              <div className="flex items-end gap-1 h-6 w-36 px-1.5 bg-bldgShadow border-2 border-pixelBorder">
+            <div className="mt-2.5 pt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-3">
+              <div className="flex items-end gap-1 h-6 w-36 px-1.5 bg-[#131021] border-2 border-[#3D2F4C]">
                 {[40, 75, 90, 60, 100, 45, 80, 65, 95, 50, 85, 70, 90, 55, 80, 60].map((height, i) => (
                   <div 
                     key={i}
-                    className="flex-1 bg-neonPink transition-all"
+                    className="flex-1 bg-[#F57D7C] transition-all"
                     style={{
                       height: isPlaying ? `${(Math.sin((Date.now()/180) + i * 0.8) * 35 + height/2 + 25)}%` : '15%',
                       backgroundColor: i % 2 === 0 ? '#F57D7C' : '#FFC061'
@@ -1014,11 +1150,11 @@
               </div>
 
               {/* Status Tags */}
-              <div className="flex items-center gap-2 text-xs font-sub">
-                <span className="px-2 py-0.5 bg-wallBase border border-pixelBorder text-gray-300">
+              <div className="flex items-center gap-2 text-xs font-['Silkscreen']">
+                <span className="px-2 py-0.5 bg-[#2A2238] border border-[#3D2F4C] text-gray-300">
                   RATE: {playbackRate}x
                 </span>
-                <span className="px-2 py-0.5 bg-wallBase border border-pixelBorder text-warmLight">
+                <span className="px-2 py-0.5 bg-[#2A2238] border border-[#3D2F4C] text-[#FFC061]">
                   VOL: {isMuted ? 'MUTED' : `${volume}%`}
                 </span>
               </div>
@@ -1026,30 +1162,30 @@
           </div>
 
           {/* NOW PLAYING INFO BAR */}
-          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs text-skyDusk font-header">
+          <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs text-[#E08573] font-['Press_Start_2P']">
               <div className="flex items-center gap-2">
-                <span className="text-neonPink">NOW PLAYING</span>
+                <span className="text-[#F57D7C]">NOW PLAYING</span>
                 {currentTrack && (
-                  <span className="text-gray-400 font-body text-sm font-normal">
+                  <span className="text-gray-400 font-['VT323'] text-sm font-normal">
                     [ID: {currentTrack.videoId}]
                   </span>
                 )}
               </div>
-              <div className="text-warmLight font-body text-base">
+              <div className="text-[#FFC061] font-['VT323'] text-base">
                 {formatTime(currentTime)} / {formatTime(duration)}
               </div>
             </div>
 
             {/* Marquee Title Container */}
-            <div className="pixel-frame-inset p-2 bg-bldgShadow overflow-hidden whitespace-nowrap">
+            <div className="pixel-frame-inset p-2 bg-[#131021] overflow-hidden whitespace-nowrap">
               {currentTrack ? (
-                <div className="font-body text-lg sm:text-xl text-warmLight font-bold animate-marquee">
+                <div className="font-['VT323'] text-lg sm:text-xl text-[#FFC061] font-bold animate-marquee">
                   {currentTrack.title || `YouTube Video [${currentTrack.videoId}]`} ─── Retro City Pop Radio ───
                 </div>
               ) : (
-                <div className="font-body text-base text-gray-500 italic">
-                  No track currently playing (select from queue or press Play)
+                <div className="font-['VT323'] text-base text-gray-500 italic">
+                  No track currently playing (search for tracks or paste URL to start)
                 </div>
               )}
             </div>
@@ -1057,30 +1193,28 @@
             {/* Interactive Pixel Progress Bar */}
             <div 
               onClick={onSeek}
-              className="relative w-full h-4 bg-bldgShadow border-2 border-pixelBorder cursor-pointer shadow-[inset_2px_2px_0px_#000]"
+              className="relative w-full h-4 bg-[#131021] border-2 border-[#3D2F4C] cursor-pointer shadow-[inset_2px_2px_0px_#000]"
               title="Click to seek position"
             >
-              {/* Filled Progress */}
               <div 
-                className="h-full bg-neonPink border-r-2 border-warmLight transition-all"
+                className="h-full bg-[#F57D7C] border-r-2 border-[#FFC061] transition-all"
                 style={{ width: `${progressPercent}%` }}
               ></div>
 
-              {/* Pixel Scrubber Head */}
               {duration > 0 && (
                 <div 
-                  className="absolute top-[-4px] w-3 h-5 bg-warmLight border-2 border-bldgShadow shadow-[1px_1px_0px_#000]"
+                  className="absolute top-[-4px] w-3 h-5 bg-[#FFC061] border-2 border-[#131021] shadow-[1px_1px_0px_#000]"
                   style={{ left: `calc(${progressPercent}% - 6px)` }}
                 ></div>
               )}
             </div>
           </div>
 
-          {/* URL INPUT + "ADD TO QUEUE" BUTTON */}
-          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-2">
-            <div className="flex items-center justify-between text-xs font-header text-skySunset">
-              <span>ADD TO QUEUE (YOUTUBE URL)</span>
-              <span className="text-gray-400 font-body text-sm">Supports youtube.com, youtu.be, shorts</span>
+          {/* URL INPUT & SEARCH BUTTON (Equal height & width) */}
+          <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs font-['Press_Start_2P'] text-[#E08573]">
+              <span>ADD TRACK</span>
+              <span className="text-gray-400 font-['VT323'] text-sm">Supports youtube.com, youtu.be, shorts</span>
             </div>
 
             <form onSubmit={handleAddSubmit} className="flex flex-col sm:flex-row gap-2">
@@ -1088,91 +1222,95 @@
                 type="text"
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
-                placeholder="Paste YouTube URL (e.g. https://www.youtube.com/watch?v=...)..."
-                className="pixel-input flex-1 w-full text-base sm:text-lg"
+                placeholder="Paste YouTube URL (or click Search)..."
+                className="pixel-input flex-1 text-base sm:text-lg"
               />
               <button 
                 type="submit"
                 disabled={isAdding || !inputUrl.trim()}
-                className="pixel-btn pixel-btn-primary px-5 py-2 text-lg sm:text-xl shrink-0"
+                className="btn-unclicked btn-form-action shrink-0"
               >
-                {isAdding ? 'ADDING...' : '+ ADD TO QUEUE'}
+                {isAdding ? 'ADDING...' : 'ADD URL'}
+              </button>
+              <button 
+                type="button"
+                onClick={onOpenSearch}
+                className="btn-clicked btn-form-action shrink-0"
+                title="Search YouTube Videos"
+              >
+                SEARCH
               </button>
             </form>
           </div>
 
-          {/* TRANSPORT CONTROLS & AUDIO SETTINGS */}
-          <div className="pixel-frame p-3 bg-panelBg flex flex-col gap-3">
+          {/* TRANSPORT CONTROLS & AUDIO SETTINGS (Equal Height & Proportions per Group) */}
+          <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               
-              {/* Primary Playback Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
-                
-                {/* PREV */}
+              {/* Primary Transport Group: Prev, Play/Pause, Next */}
+              <div className="flex items-center gap-2">
                 <button 
                   onClick={onPrev}
-                  className="pixel-btn px-3.5 py-2 text-xl"
+                  className="btn-unclicked btn-transport-prev-next"
                   title="Previous Track / Restart"
                 >
                   ⏮
                 </button>
 
-                {/* PLAY / PAUSE */}
                 <button 
                   onClick={onPlayPause}
-                  className={`pixel-btn ${isPlaying ? 'pixel-btn-warning' : 'pixel-btn-neon'} px-6 py-2 text-2xl font-bold`}
+                  className={`btn-transport-play ${isPlaying ? 'btn-clicked' : 'btn-unclicked'}`}
                   title={isPlaying ? 'Pause' : 'Play'}
                 >
                   {isPlaying ? 'PAUSE' : 'PLAY'}
                 </button>
 
-                {/* NEXT */}
                 <button 
                   onClick={onNext}
                   disabled={queueLength === 0}
-                  className="pixel-btn px-3.5 py-2 text-xl"
+                  className="btn-unclicked btn-transport-prev-next"
                   title="Next Track"
                 >
                   ⏭
                 </button>
+              </div>
 
-                {/* LOOP MODE */}
+              {/* Secondary Modes Group: Loop, Shuffle, CC (Identical Dimensions) */}
+              <div className="flex items-center gap-2">
                 <button 
                   onClick={onToggleLoop}
-                  className={`pixel-btn px-3 py-2 text-base ${loopMode !== 'none' ? 'bg-neonPink text-bldgShadow font-bold' : ''}`}
+                  className={`btn-mode-group ${loopMode !== 'none' ? 'btn-clicked' : 'btn-unclicked'}`}
                   title={`Repeat Mode: ${loopMode}`}
                 >
                   {loopMode === 'one' ? 'LOOP 1' : loopMode === 'all' ? 'LOOP ALL' : 'LOOP OFF'}
                 </button>
 
-                {/* SHUFFLE */}
                 <button 
                   onClick={onShuffleQueue}
                   disabled={queueLength <= 1}
-                  className="pixel-btn px-3 py-2 text-base"
+                  className="btn-unclicked btn-mode-group"
                   title="Shuffle Queue"
                 >
                   SHUFFLE
                 </button>
 
-                {/* CC SUBTITLES TOGGLE BUTTON */}
                 <button 
                   onClick={onToggleCC}
-                  className={`pixel-btn px-3 py-2 text-base ${ccEnabled ? 'bg-warmLight text-bldgShadow font-bold' : 'bg-wallBase text-gray-300'}`}
+                  className={`btn-mode-group ${ccEnabled ? 'btn-clicked' : 'btn-unclicked'}`}
                   title="Toggle Subtitles (CC)"
                 >
-                  CC {ccEnabled ? 'ON' : 'OFF'}
+                  {ccEnabled ? 'CC ON' : 'CC OFF'}
                 </button>
               </div>
 
-              {/* Speed Controller */}
+              {/* Speed Controller Group: 0.75x, 1x, 1.25x, 1.5x (Identical Dimensions) */}
               <div className="flex items-center gap-1">
-                <span className="text-xs font-header text-skySunset mr-1">SPEED:</span>
+                <span className="text-xs font-['Press_Start_2P'] text-[#E08573] mr-1">SPEED:</span>
                 {[0.75, 1, 1.25, 1.5].map((rate) => (
                   <button
                     key={rate}
                     onClick={() => onSetPlaybackRate(rate)}
-                    className={`pixel-btn px-2 py-1 text-xs ${playbackRate === rate ? 'bg-warmLight text-bldgShadow font-bold' : 'bg-wallBase text-gray-300'}`}
+                    className={`btn-speed ${playbackRate === rate ? 'btn-clicked' : 'btn-unclicked'}`}
                   >
                     {rate}x
                   </button>
@@ -1180,28 +1318,28 @@
               </div>
             </div>
 
-            {/* Volume Control Slider */}
-            <div className="pt-2 border-t-2 border-pixelBorder flex flex-wrap items-center justify-between gap-3">
+            {/* Volume Control Slider & Clear Queue */}
+            <div className="pt-2 border-t-2 border-[#3D2F4C] flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 flex-1 max-w-sm">
                 <button 
                   onClick={onToggleMute}
-                  className="pixel-btn px-2.5 py-1 text-sm text-warmLight"
+                  className="pixel-btn px-2.5 py-1 text-sm text-[#FFC061]"
                   title={isMuted ? 'Unmute' : 'Mute'}
                 >
                   {isMuted || volume === 0 ? 'MUTED' : 'VOL'}
                 </button>
 
                 <div className="flex-1 flex items-center gap-2">
-                  <span className="text-xs font-header text-gray-400">VOL</span>
+                  <span className="text-xs font-['Press_Start_2P'] text-gray-400">VOL</span>
                   <input 
                     type="range"
                     min="0"
                     max="100"
                     value={isMuted ? 0 : volume}
                     onChange={(e) => onVolumeChange(e.target.value)}
-                    className="w-full h-3 bg-bldgShadow accent-neonPink cursor-pointer border-2 border-pixelBorder"
+                    className="w-full h-3 bg-[#131021] accent-[#F57D7C] cursor-pointer border-2 border-[#3D2F4C]"
                   />
-                  <span className="text-sm font-body text-warmLight w-8 text-right">
+                  <span className="text-sm font-['VT323'] text-[#FFC061] w-8 text-right">
                     {isMuted ? '0' : volume}%
                   </span>
                 </div>
@@ -1211,7 +1349,8 @@
                 <button 
                   onClick={onClearQueue}
                   disabled={queueLength === 0}
-                  className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
+                  className="btn-unclicked pixel-btn-danger text-sm"
+                  style={{ height: '36px' }}
                   title="Clear all tracks in queue"
                 >
                   CLEAR QUEUE ({queueLength})
@@ -1224,7 +1363,7 @@
       );
     }
 
-    // --- RIGHT PANEL COMPONENT (Queue List & Playback History) ---
+    // --- RIGHT PANEL COMPONENT (Equal Tabs & Clean Layout) ---
     function RightQueuePanel({
       queue,
       history,
@@ -1239,25 +1378,23 @@
       onRequeue
     }) {
       return (
-        <div className="pixel-frame p-3 bg-panelBg flex flex-col h-full min-h-[500px]">
+        <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full min-h-[500px]">
           
-          {/* Panel Header & Navigation Tabs */}
-          <div className="flex items-center justify-between border-b-2 border-pixelBorder pb-2 mb-2">
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => { sfx.switch(); setActiveTab('queue'); }}
-                className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'queue' ? 'pixel-btn-neon' : 'bg-wallBase text-gray-300'}`}
-              >
-                QUEUE ({queue.length})
-              </button>
-              
-              <button 
-                onClick={() => { sfx.switch(); setActiveTab('history'); }}
-                className={`pixel-btn px-4 py-1.5 text-base font-bold ${activeTab === 'history' ? 'pixel-btn-warning' : 'bg-wallBase text-gray-300'}`}
-              >
-                HISTORY ({history.length})
-              </button>
-            </div>
+          {/* Panel Header & Navigation Tabs (Exact Equal Width & Height) */}
+          <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2">
+            <button 
+              onClick={() => { sfx.switch(); setActiveTab('queue'); }}
+              className={`btn-tab ${activeTab === 'queue' ? 'btn-clicked' : 'btn-unclicked'}`}
+            >
+              QUEUE ({queue.length})
+            </button>
+            
+            <button 
+              onClick={() => { sfx.switch(); setActiveTab('history'); }}
+              className={`btn-tab ${activeTab === 'history' ? 'btn-clicked' : 'btn-unclicked'}`}
+            >
+              HISTORY ({history.length})
+            </button>
           </div>
 
           {/* TAB 1: QUEUE LIST */}
@@ -1267,43 +1404,40 @@
               {/* Queue Items Container */}
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {queue.length === 0 ? (
-                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
-                    <div className="font-header text-xs text-warmLight mb-1">
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
+                    <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] mb-1">
                       QUEUE IS EMPTY
                     </div>
-                    <p className="font-body text-base text-gray-400">
-                      Paste a YouTube URL on the left and click "ADD TO QUEUE" to add tracks
+                    <p className="font-['VT323'] text-base text-gray-400">
+                      Search YouTube or paste a link on the left to add tracks
                     </p>
                   </div>
                 ) : (
                   queue.map((track, index) => (
                     <div 
                       key={track.id}
-                      className="pixel-frame p-2 bg-wallBase/90 hover:bg-skyMid/50 transition-colors flex items-center justify-between gap-2 group"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group"
                     >
                       {/* Left: Index + Play Button + Info */}
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                        
-                        {/* Index Badge */}
-                        <span className="w-6 text-center font-header text-xs text-skySunset shrink-0">
+                        <span className="w-6 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           #{index + 1}
                         </span>
 
-                        {/* Direct Play Button */}
                         <button 
                           onClick={() => onPlayNow(index)}
-                          className="pixel-btn px-2 py-0.5 text-xs bg-warmLight text-bldgShadow hover:bg-white font-bold shrink-0"
+                          className="btn-unclicked text-xs hover:bg-white font-bold shrink-0"
+                          style={{ padding: '2px 8px', height: '28px' }}
                           title="Play this track now"
                         >
                           PLAY
                         </button>
 
-                        {/* Title & Video ID */}
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-body text-base text-white truncate font-medium group-hover:text-warmLight" title={track.title}>
+                          <span className="font-['VT323'] text-base text-white truncate font-medium group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || `YouTube Video [${track.videoId}]`}
                           </span>
-                          <span className="text-xs text-gray-400 font-body">
+                          <span className="text-xs text-gray-400 font-['VT323']">
                             ID: {track.videoId} • Added {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
@@ -1311,30 +1445,30 @@
 
                       {/* Right: Controls [▲] [▼] [✕] */}
                       <div className="flex items-center gap-1 shrink-0">
-                        {/* Move Up */}
                         <button 
                           onClick={() => onMove(index, -1)}
                           disabled={index === 0}
-                          className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
+                          className="btn-unclicked text-xs"
+                          style={{ padding: '2px 6px', height: '28px' }}
                           title="Move Up"
                         >
                           ▲
                         </button>
 
-                        {/* Move Down */}
                         <button 
                           onClick={() => onMove(index, 1)}
                           disabled={index === queue.length - 1}
-                          className="pixel-btn px-1.5 py-0.5 text-xs text-warmLight"
+                          className="btn-unclicked text-xs"
+                          style={{ padding: '2px 6px', height: '28px' }}
                           title="Move Down"
                         >
                           ▼
                         </button>
 
-                        {/* Delete Track */}
                         <button 
                           onClick={() => onRemove(index)}
-                          className="pixel-btn pixel-btn-danger px-2 py-0.5 text-xs"
+                          className="btn-unclicked pixel-btn-danger text-xs"
+                          style={{ padding: '2px 8px', height: '28px' }}
                           title="Remove from queue"
                         >
                           ✕
@@ -1346,14 +1480,15 @@
               </div>
 
               {/* Bottom Actions for Queue */}
-              <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
-                <span className="text-xs font-sub text-gray-400">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
+                <span className="text-xs font-['Silkscreen'] text-gray-400">
                   Total: {queue.length} tracks
                 </span>
                 <button 
                   onClick={onClearAll}
                   disabled={queue.length === 0}
-                  className="pixel-btn pixel-btn-danger px-4 py-1.5 text-base font-bold"
+                  className="btn-unclicked pixel-btn-danger text-sm font-bold"
+                  style={{ height: '36px', padding: '0 16px' }}
                 >
                   CLEAR ALL QUEUE
                 </button>
@@ -1366,11 +1501,11 @@
             <div className="flex flex-col flex-1 justify-between">
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {history.length === 0 ? (
-                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-bldgShadow/70">
-                    <div className="font-header text-xs text-gray-400 mb-1">
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
+                    <div className="font-['Press_Start_2P'] text-xs text-gray-400 mb-1">
                       NO PLAYBACK HISTORY
                     </div>
-                    <p className="font-body text-sm text-gray-500">
+                    <p className="font-['VT323'] text-sm text-gray-500">
                       Played or skipped tracks will appear here in chronological order
                     </p>
                   </div>
@@ -1378,18 +1513,17 @@
                   history.map((track, index) => (
                     <div 
                       key={track.id + '_' + index}
-                      className="pixel-frame p-2 bg-wallBase/70 flex items-center justify-between gap-2"
+                      className="pixel-frame p-2 bg-[#2A2238]/70 flex items-center justify-between gap-2"
                     >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                        {/* Chronological order number: 1., 2., 3. */}
-                        <span className="text-sm text-warmLight font-header w-8 shrink-0">
+                        <span className="text-sm text-[#FFC061] font-['Press_Start_2P'] w-8 shrink-0">
                           {index + 1}.
                         </span>
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-body text-base text-gray-200 truncate font-medium" title={track.title}>
+                          <span className="font-['VT323'] text-base text-gray-200 truncate font-medium" title={track.title}>
                             {track.title || track.videoId}
                           </span>
-                          <span className="text-xs text-gray-400 font-body">
+                          <span className="text-xs text-gray-400 font-['VT323']">
                             ID: {track.videoId}
                           </span>
                         </div>
@@ -1398,7 +1532,8 @@
                       {/* Re-add button */}
                       <button 
                         onClick={() => onRequeue(track)}
-                        className="pixel-btn pixel-btn-primary px-2.5 py-1 text-xs shrink-0"
+                        className="btn-unclicked text-xs shrink-0"
+                        style={{ padding: '2px 10px', height: '28px' }}
                         title="Add this track back to queue"
                       >
                         + ADD TO QUEUE
@@ -1409,14 +1544,15 @@
               </div>
 
               {/* Bottom Actions for History */}
-              <div className="pt-3 mt-2 border-t-2 border-pixelBorder flex items-center justify-between gap-2">
-                <span className="text-xs font-sub text-gray-400">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
+                <span className="text-xs font-['Silkscreen'] text-gray-400">
                   History: {history.length} items
                 </span>
                 <button 
                   onClick={onClearHistory}
                   disabled={history.length === 0}
-                  className="pixel-btn pixel-btn-danger px-3 py-1 text-sm"
+                  className="btn-unclicked pixel-btn-danger text-sm"
+                  style={{ height: '36px', padding: '0 16px' }}
                 >
                   CLEAR HISTORY
                 </button>
@@ -1428,12 +1564,265 @@
       );
     }
 
-    // Render Full React App
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    // --- RETRO ARCADE SEARCH POP-UP MODAL COMPONENT ---
+    function ArcadeSearchModal({ onClose, onAddTrack, onPlayTrack, showToast }) {
+      const [searchQuery, setSearchQuery] = useState('');
+      const [isSearching, setIsSearching] = useState(false);
+      const [results, setResults] = useState([]);
+      const [addedIds, setAddedIds] = useState({});
+      const inputRef = useRef(null);
 
+      useEffect(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, []);
+
+      const performSearch = async (queryText) => {
+        const q = (queryText || searchQuery).trim();
+        if (!q) return;
+
+        sfx.click();
+        setIsSearching(true);
+        setResults([]);
+
+        const directId = extractVideoId(q);
+        if (directId) {
+          const title = await fetchVideoTitle(directId);
+          setResults([{
+            videoId: directId,
+            title: title,
+            author: 'Direct URL Input',
+            lengthSeconds: 0
+          }]);
+          setIsSearching(false);
+          return;
+        }
+
+        const endpoints = [
+          `https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
+          `https://invidious.nerdvpn.de/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
+          `https://invidious.drgns.space/api/v1/search?q=${encodeURIComponent(q)}&type=video`,
+          `https://iv.datura.network/api/v1/search?q=${encodeURIComponent(q)}&type=video`
+        ];
+
+        let found = false;
+        for (const ep of endpoints) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const res = await fetch(ep, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (res.ok) {
+              const data = await res.json();
+              if (Array.isArray(data) && data.length > 0) {
+                const cleanResults = data
+                  .filter(item => item.videoId || item.id)
+                  .map(item => ({
+                    videoId: item.videoId || item.id,
+                    title: item.title || 'Untitled Track',
+                    author: item.author || item.authorText || 'Artist',
+                    lengthSeconds: item.lengthSeconds || 0
+                  }))
+                  .slice(0, 15);
+                
+                if (cleanResults.length > 0) {
+                  setResults(cleanResults);
+                  found = true;
+                  break;
+                }
+              }
+            }
+          } catch (e) {}
+        }
+
+        if (!found) {
+          try {
+            const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${q}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.title) {
+                setResults([{ videoId: q, title: data.title, author: 'YouTube Track', lengthSeconds: 0 }]);
+                found = true;
+              }
+            }
+          } catch (e) {}
+
+          if (!found) {
+            showToast('Search service busy. You can also paste a direct YouTube URL.');
+          }
+        }
+
+        setIsSearching(false);
+      };
+
+      const handleFormSubmit = (e) => {
+        e.preventDefault();
+        performSearch(searchQuery);
+      };
+
+      const handleAddClick = (item) => {
+        onAddTrack(item.videoId, item.title);
+        setAddedIds(prev => ({ ...prev, [item.videoId]: true }));
+        setTimeout(() => {
+          setAddedIds(prev => ({ ...prev, [item.videoId]: false }));
+        }, 2500);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-[#131021]/85 backdrop-blur-sm">
+          <div className="pixel-frame-arcade w-full max-w-3xl max-h-[85vh] flex flex-col p-4 bg-[#1D1728]/95 shadow-[8px_8px_0px_#000] border-4 border-[#F57D7C] relative">
+            
+            {/* Arcade Modal Header */}
+            <div className="flex items-center justify-between border-b-2 border-[#3D2F4C] pb-3 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-[#FFC061] border border-[#F57D7C] animate-pulse"></span>
+                <span className="font-['Press_Start_2P'] text-sm sm:text-base text-[#FFC061] tracking-wider">
+                  ARCADE SEARCH // YOUTUBE
+                </span>
+              </div>
+              
+              <button 
+                onClick={() => { sfx.click(); onClose(); }}
+                className="btn-unclicked pixel-btn-danger text-sm font-bold"
+                style={{ height: '36px', padding: '0 12px' }}
+                title="Close Window (Escape)"
+              >
+                ✕ ESC
+              </button>
+            </div>
+
+            {/* Arcade Search Bar Form */}
+            <form onSubmit={handleFormSubmit} className="flex gap-2 mb-3">
+              <input 
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Type artist, song title or paste YouTube URL..."
+                className="pixel-input flex-1 text-lg sm:text-xl border-2 border-[#F57D7C]"
+              />
+              <button 
+                type="submit"
+                disabled={isSearching || !searchQuery.trim()}
+                className="btn-clicked text-lg sm:text-xl font-bold shrink-0"
+                style={{ height: '48px', padding: '0 20px' }}
+              >
+                {isSearching ? 'SEARCHING...' : 'SEARCH'}
+              </button>
+            </form>
+
+            {/* Search Results Display Area */}
+            <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 min-h-[280px] max-h-[460px]">
+              {isSearching ? (
+                <div className="pixel-frame-inset p-8 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/80">
+                  <div className="font-['Press_Start_2P'] text-xs text-[#F57D7C] animate-pulse mb-2">
+                    QUERYING YOUTUBE DATABASE...
+                  </div>
+                  <div className="w-32 h-2 bg-[#131021] border border-[#3D2F4C] overflow-hidden">
+                    <div className="h-full bg-[#FFC061] animate-marquee w-12"></div>
+                  </div>
+                </div>
+              ) : results.length === 0 ? (
+                <div className="pixel-frame-inset p-8 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
+                  <div className="font-['Press_Start_2P'] text-xs text-gray-400 mb-1">
+                    READY TO SEARCH
+                  </div>
+                  <p className="font-['VT323'] text-base text-gray-400">
+                    Enter a song or artist name above to discover tracks and add them to your queue in 1 click
+                  </p>
+                </div>
+              ) : (
+                results.map((item) => (
+                  <div 
+                    key={item.videoId}
+                    className="pixel-frame p-2.5 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+                  >
+                    {/* Left: Thumbnail & Details */}
+                    <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0 w-full sm:w-auto">
+                      <div className="relative w-24 sm:w-28 pb-[14%] sm:pb-[16%] shrink-0 bg-[#131021] border-2 border-[#3D2F4C] overflow-hidden">
+                        <img 
+                          src={`https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`}
+                          alt={item.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex flex-col overflow-hidden min-w-0 flex-1">
+                        <span className="font-['VT323'] text-lg text-white font-bold truncate group-hover:text-[#FFC061]" title={item.title}>
+                          {item.title}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs font-['Silkscreen'] text-gray-400">
+                          <span className="truncate">{item.author}</span>
+                          {item.lengthSeconds > 0 && (
+                            <span className="px-1.5 py-0.2 bg-[#131021] border border-[#3D2F4C] text-[#FFC061]">
+                              {formatTime(item.lengthSeconds)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+                      <button 
+                        onClick={() => {
+                          onPlayTrack(item.videoId, item.title);
+                          onClose();
+                        }}
+                        className="btn-unclicked text-sm font-bold"
+                        style={{ height: '34px', padding: '0 12px' }}
+                        title="Play immediately"
+                      >
+                        PLAY
+                      </button>
+
+                      <button 
+                        onClick={() => handleAddClick(item)}
+                        className={`${addedIds[item.videoId] ? 'btn-clicked' : 'btn-unclicked'} text-sm font-bold`}
+                        style={{ height: '34px', padding: '0 14px' }}
+                        title="Add to queue"
+                      >
+                        {addedIds[item.videoId] ? 'ADDED!' : '+ ADD QUEUE'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Arcade Modal Footer */}
+            <div className="pt-3 mt-3 border-t-2 border-[#3D2F4C] flex items-center justify-between text-xs text-gray-400 font-['Silkscreen']">
+              <span>PRESS [ESC] TO CLOSE</span>
+              <span>1-CLICK ADD TO QUEUE</span>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // Safely Mount React App
+    function initApp() {
+      const container = document.getElementById('root');
+      if (container && window.ReactDOM) {
+        ReactDOM.createRoot(container).render(<App />);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
   </script>
 
-  <!-- Procedural Detailed 16/32-Bit Pixel Art Dusk Cityscape Background (Clean English Signs) -->
+  <!-- Procedural Detailed 16/32-Bit Pixel Art Dusk Cityscape Background -->
   <script>
     function renderPixelDuskAlley() {
       const bg = document.getElementById('cityscape-bg');
@@ -1535,7 +1924,7 @@
         </g>
 
         <g id="neon-signs">
-          <!-- LEFT SIGN 1: MIDNIGHT RECORDS -->
+          <!-- LEFT SIGN 1: MIDNIGHT -->
           <rect x="310" y="610" width="45" height="180" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
           <rect x="315" y="618" width="35" height="164" fill="#F57D7C" opacity="0.15" />
           <text x="332" y="645" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">M</text>
@@ -1617,8 +2006,9 @@
       bg.innerHTML = svg;
     }
 
-    window.addEventListener('DOMContentLoaded', renderPixelDuskAlley);
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderPixelDuskAlley);
+    } else {
       renderPixelDuskAlley();
     }
   </script>

@@ -1,24 +1,24 @@
-# Japanese Music Station (シティポップ・ステーション) 🎵🌆
+# Japanese Music Station (v1.5.3) 🎵🌆
 
-เว็บแอปพลิเคชันสำหรับเปิดเพลง YouTube แบบคิวเพลง (Queue Player) ในธีม **Pixel Art × 80s Japanese City Pop** ออกแบบให้เป็น Single Self-Contained HTML File ที่สามารถรันได้ทันทีเพียงดับเบิลคลิก หรือนำไป Deploy บน Netlify ผ่าน GitHub ได้ง่ายโดยไม่ต้องผ่านขั้นตอนการ Build หรือลง Node.js/npm ใดๆ
-
----
-
-## 🌃 1. แนวคิดของโปรเจกต์ (Concept & Visual North Star)
-
-* **บรรยากาศเสมือนห้อง DJ Booth ยุค 80s**: ได้รับแรงบันดาลใจจากความคลาสสิกของเกมแนว Retro Virtual World ผสมผสานกับเพลง City Pop ญี่ปุ่น
-* **ภาพกราฟิกฉากหลัง**: ตรอกซอยญี่ปุ่นยามพลบค่ำ (Dusk Alleyway) สไตล์ 16/32-Bit Pixel Art 
-  * ท้องฟ้าไล่เฉดสีทไวไลท์ ม่วง-ชมพู-ส้ม พร้อมดาวระยิบระยับ
-  * เงาภูเขาไฟฟูจิและโตเกียวทาวเวอร์เรืองแสงในระยะไกล
-  * เสาไฟฟ้าแรงสูงพร้อมสายไฟระโยงระยางพาดผ่านตรอก
-  * ป้ายไฟนีออนภาษาญี่ปุ่นเรืองแสง (「CITY POP」, 「深夜音楽」, 「BAR 夜間飛行」) และโคมไฟแดง (赤提灯)
-  * หน้าต่างบ้านพักเรืองแสงสีส้มอบอุ่นและเงาสะท้อนบนพื้นถนน
+A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop** aesthetic. Built as a single self-contained HTML file that runs instantly by double-clicking or can be deployed directly to Netlify via GitHub with zero build steps or npm installations.
 
 ---
 
-## 🎨 2. โทนสีและข้อกำหนดด้านดีไซน์ (Color Palette & Styling)
+## 🕹️ 1. Key Highlights & Features
 
-### พาเลทสีหลัก (Exact Hex)
+* **Unified Retro Button System**: Strict, consistent button states across the entire application — unclicked (white text, dark base, border) and clicked (dark text, bright pink/gold base, contrast border).
+* **Proportional Group Sizing**: Buttons in the same functional groups (Tabs, Transport, Modes, Speeds, Actions, Header) share matching heights, widths, and alignments.
+* **Dedicated Arcade Music Search**: Search YouTube music in real-time with 1-click **`+ ADD QUEUE`** or **`PLAY`** actions using the dedicated **`SEARCH`** button or keyboard shortcuts (**`/`** and **`Ctrl + K`**).
+* **Virtual 80s DJ Booth**: Inspired by retro pixel art environments and Japanese City Pop vibes.
+* **16/32-Bit Procedural Dusk Cityscape**: Features Mount Fuji, Tokyo Tower, overhead power lines, and glowing retro neon signs.
+* **Full YouTube Native Controls**: Settings Gear (⚙️) for 1080p/720p resolution and CC Subtitle toggle without Player Error 153.
+* **Smart Queue & History**: Re-order, delete, clear, and re-add previously played tracks in chronological order.
+
+---
+
+## 🎨 2. Color Palette & Styling Constraints
+
+### Color Palette (Exact Hex)
 * **Sky top (navy)**: `#1F1A3A`
 * **Sky mid (purple)**: `#5B3256`
 * **Sky sunset**: `#A2536A`
@@ -27,62 +27,45 @@
 * **Wall base**: `#2A2238`
 * **Warm light accent**: `#FFC061`
 * **Neon pink accent**: `#F57D7C`
-* **Panel background**: `#1D1728` (โปร่งแสง 88%)
+* **Panel background**: `#1D1728` (90% opacity)
 * **Pixel border**: `#3D2F4C`
 
-### กฎการออกแบบ (Pixel-Art Rules)
-* **Zero Border-Radius**: มุมเหลี่ยมสนิท 100% ไม่มีขอบมน
-* **Pixel Border & Shadow**: ขอบหนา 2–4px solid `#3D2F4C` พร้อมเงาตกกระทบแบบแข็ง `box-shadow: 4px 4px 0px #000` (เมื่อกดจะยุบตัวลง `translate(2px, 2px)`)
-* **Retro Monospace Typography**: ใช้ฟอนต์พิกเซล `Press Start 2P` สำหรับหัวข้อ, `VT323` สำหรับข้อความทั่วไป, และ `DotGothic16` สำหรับภาษาญี่ปุ่น
-* **Step Transitions**: อนิเมชันทุกส่วนใช้ฟังก์ชัน `steps()` เพื่อให้จังหวะการขยับมีความกระตุกแบบเกมยุค 90s
+### Strict Pixel Rules
+* **Zero Border-Radius**: 100% hard-edged pixel styling.
+* **Pixel Borders & Shadows**: 2–4px solid `#3D2F4C` with `4px 4px 0px #000` drop-shadows that depress on click (`translate(2px, 2px)`).
+* **Typography**: Google Fonts `Press Start 2P` for headers, `VT323` for body text, and `Silkscreen` for sub-labels.
+* **Step Transitions**: Retro `steps()` animation curves for authentic vintage responsiveness.
 
 ---
 
-## 📐 3. โครงสร้างเลย์เอาต์และการทำงาน (Layout & Architecture)
+## 📐 3. Layout & Architecture (65% : 35% Grid)
 
-แบ่งหน้าจอออกเป็น 2 คอลัมน์ (อัตราส่วน 65% : 35%) และปรับเป็นคอลัมน์เดี่ยวบนหน้าจอขนาดเล็ก (<900px):
-
-### พาเนลซ้าย (65% - DJ Player & Controls):
-1. **หน้าจอเครื่องเล่น YouTube (16:9)**: ฝัง YouTube IFrame Player API เต็มรูปแบบ พร้อมแถบควบคุมมาตรฐาน (ปุ่มฟันเฟือง ⚙️ ตั้งค่าความละเอียด 1080p/720p และปุ่มเปิด/ปิด CC Subtitles)
-2. **Now Playing Bar**: แสดงชื่อเพลงแบบตัววิ่ง (Marquee), รหัส Video ID, แถบเวลา และแถบ Scrubber พิกเซลที่คลิกเพื่อเลื่อนเวลาได้
-3. **ช่องใส่ URL + ปุ่ม "เพิ่มคิว"**: รองรับลิงก์ YouTube ทุกรูปแบบ (`youtube.com`, `youtu.be`, `shorts`) พร้อมระบบดึงชื่อเพลงอัตโนมัติ
-4. **ชุดปุ่มควบคุมการเล่น (Transport Controls)**:
-   * ⏮ Prev (ย้อนกลับ / เล่นใหม่)
+### Left Panel (65% — Player & Controls):
+1. **16:9 YouTube Screen**: YouTube IFrame Player with full native controls (Settings Gear ⚙️ and CC button), custom pixel visualizer equalizer, and a minimalist on-air status badge.
+2. **Now Playing Info Bar**: Scrolling marquee title, Video ID, time elapsed/total, and an interactive pixel scrubber bar.
+3. **URL Input & Arcade Search**: Paste any YouTube link and click **ADD URL**, or click **SEARCH** to open the Arcade Search modal.
+4. **Transport Controls**:
+   * ⏮ Prev (Restart / Previous track)
    * ⏯ Play / Pause
-   * ⏭ Next (ข้ามไปเพลงถัดไป)
-   * 🔂/🔁 Loop Mode (ปิด / วนซ้ำเพลงเดียว / วนซ้ำคิวทั้งหมด)
-   * 🔀 Shuffle (สลับลำดับคิว)
-   * 💬 CC (ปุ่มลัดเปิด/ปิดคำบรรยาย)
-   * ⚡ Speed Selector (0.75x, 1x, 1.25x, 1.5x)
-   * 🔊 แถบปรับระดับเสียง (0–100%) พร้อมปุ่ม Mute
-   * 🗑 ล้างคิว
+   * ⏭ Next (Skip to next track)
+   * Loop Mode (Off / Loop 1 / Loop All)
+   * Shuffle Queue
+   * CC Subtitles Toggle
+   * Speed Selectors (0.75x, 1x, 1.25x, 1.5x)
+   * Volume Slider (Default: 25%) & Mute Button
+   * Clear Queue
 
-### พาเนลขวา (35% - Queue & History):
-1. **📋 แท็บคิวเพลง (Queue)**: แสดงรายการเพลงที่รอเล่น พร้อมปุ่มจัดการรายเพลง:
-   * [▶] เล่นเพลงนี้ทันที
-   * [▲] เลื่อนลำดับขึ้น
-   * [▼] เลื่อนลำดับลง
-   * [✕] ลบเพลงออกจากคิว
-   * ปุ่ม "ล้างคิวทั้งหมด" ด้านล่าง
-2. **📜 แท็บประวัติ (History)**: บันทึกเพลงที่เล่นจบหรือถูกข้าม เรียงตามลำดับเวลาจริง (1., 2., 3...) พร้อมปุ่ม **`+ เพิ่มเข้าคิว`** เพื่อนำเพลงกลับมาเล่นใหม่ได้ใน 1 คลิก
+### Right Panel (35% — Queue & History):
+1. **QUEUE Tab**: Manage queued tracks with [PLAY], [▲] Move Up, [▼] Move Down, and [✕] Delete actions, plus "CLEAR ALL QUEUE".
+2. **HISTORY Tab**: Tracks played in chronological order (1., 2., 3...) with a 1-click **`+ ADD TO QUEUE`** button.
 
 ---
 
-## 🛠️ 4. เทคโนโลยีที่ใช้ (Tech Stack)
+## 🛠️ 4. Tech Stack
 
-* **HTML5 / Single File**: รวม HTML, CSS และ JavaScript ทั้งหมดไว้ในไฟล์เดียว
-* **React 18 & Babel Standalone**: ขับเคลื่อน UI แบบ Reactive ผ่าน CDN
-* **Tailwind CSS**: จัดแต่งหน้าตาด้วย Utility Classes และ Custom Config ผ่าน CDN
-* **YouTube IFrame Player API**: จัดการการสตรีมวิดีโอและควบคุมสถานะการเล่น
-* **Web Audio API**: สร้างเสียงสังเคราะห์เอฟเฟกต์ 8-Bit (SFX) แบบเรียลไทม์
-* **LocalStorage**: บันทึกรายการคิว, ประวัติ และระดับเสียงไว้ในเบราว์เซอร์อัตโนมัติ
-
----
-
-## 🚀 5. วิธีเปิดใช้งานและ Deploy
-
-* **เปิดใช้งานในเครื่อง**: ดับเบิลคลิกไฟล์ `index.html` หรือ `japanese-music-station.html` เปิดใน Chrome, Edge, Safari หรือ Firefox ได้ทันที
-* **Deploy บน Netlify ผ่าน GitHub**:
-  1. สร้าง Repository บน GitHub แล้วอัปโหลดไฟล์เป็นชื่อ `index.html`
-  2. เชื่อมต่อ Repository เข้ากับ Netlify (ปล่อย Build settings ว่างไว้)
-  3. เมื่อมีการแก้ไขไฟล์บน GitHub ระบบจะ Deploy เว็บเวอร์ชันใหม่ให้อัตโนมัติทันที
+* **HTML5 / Single File**: Entire application in `index.html` (or `japanese-music-station-v1.5.3.html`) with zero dependencies.
+* **React 18 & Babel Standalone**: Client-side reactive UI via Cloudflare CDNjs.
+* **Tailwind CSS**: Utility styling with inline configuration.
+* **YouTube IFrame API**: Video playback and state synchronization.
+* **Web Audio API**: Real-time 8-bit retro sound synthesizer (SFX).
+* **LocalStorage**: Persistent queue, history, and volume settings.
