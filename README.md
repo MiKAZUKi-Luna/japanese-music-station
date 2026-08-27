@@ -1,4 +1,4 @@
-# Japanese Music Station (v1.5.6) 🎵🌆
+# Japanese Music Station (v1.6.0) 🎵🌆
 
 A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop** aesthetic. Built as a single self-contained HTML file that runs instantly by double-clicking or can be deployed directly to Netlify via GitHub with zero build steps or npm installations.
 
@@ -6,15 +6,15 @@ A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop
 
 ## 🕹️ 1. Key Highlights & Features
 
-* **100% Vertical Space Utilization**: The Right Panel (Queue & History) now dynamically fills the entire height of the workspace without awkward bottom gaps or restricted list bounds.
-* **Streamlined Single-Line Track Rows**: Removed redundant metadata (`ID:` and `Added:`) from Queue and History, completely eliminating text overlapping on smaller windows.
-* **Smart History-to-Queue Transfer**: Clicking **`+ ADD TO QUEUE`** in History moves the track back into the active Queue and removes it from History.
-* **Unobstructed 16:9 Display Area**: Zero overlay badges inside the video frame, ensuring 100% accessibility for YouTube's native Settings Gear (⚙️), CC Subtitles, Share, and Fullscreen buttons.
+* **Interactive Ambience System**: Customize your virtual DJ booth atmosphere via the top-right **`AMBIENCE`** button (or press **`A`**):
+  * **TIME OF DAY**: **`DAY`** (bright blue sky), **`DUSK`** (classic twilight orange-purple), and **`NIGHT`** (deep starry midnight).
+  * **WEATHER & AUDIO**: **`CLEAR`** (silent / clear skies), **`RAIN`** (pixel rain droplets + continuous procedural rain sound), and **`SNOW`** (drifting snowflakes + soft gentle breeze sound).
+* **Zero-File Ambient Sound Engine**: Synthesizes authentic rain and wind audio mathematically via the browser's Web Audio API with zero external audio files.
+* **Unobstructed 16:9 Display Area**: Video surface is 100% clear with zero overlapping badges, ensuring full access to YouTube's native Settings Gear (⚙️), CC Subtitles, Share, and Fullscreen controls.
 * **Symmetrical Queue & History Panels**: Identical typography (`Press Start 2P` + `VT323`), color palette, padding, and button proportions across both tabs.
 * **Inline Pixel Favicon**: Embedded SVG data URI music note favicon (`♫`) eliminates 404 errors on Netlify and local previews.
 * **Universal CORS-Free YouTube Search**: Multi-tier real-time search engine with fallback support and instant 1-click queuing.
 * **Unified Retro Button System**: Strict, consistent button states across the entire application — unclicked (white text, dark base, border) and clicked (dark text, bright pink/gold base, contrast border).
-* **Proportional Group Sizing**: Buttons in the same functional groups (Tabs, Transport, Modes, Speeds, Actions, Header) share matching heights, widths, and alignments.
 
 ---
 
@@ -52,16 +52,16 @@ A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop
    * Clear Queue
 
 ### Right Panel (35% — Queue & History):
-1. **QUEUE Tab**: Full-height dynamic list with clean single-line rows `[#Index] [PLAY] Title [▲] [▼] [✕]` and "CLEAR ALL QUEUE".
-2. **HISTORY Tab**: Full-height dynamic list in chronological order `[Index.] Title [+ ADD TO QUEUE]` with instant queue transfer and "CLEAR HISTORY".
+1. **QUEUE Tab**: Symmetrical empty state card & list rows with [PLAY], [▲] Move Up, [▼] Move Down, and [✕] Delete actions, plus "CLEAR ALL QUEUE".
+2. **HISTORY Tab**: Symmetrical empty state card & list rows in chronological order (1., 2., 3...) with a 1-click **`+ ADD TO QUEUE`** button and "CLEAR HISTORY".
 
 ---
 
 ## 🛠️ 4. Tech Stack
 
-* **HTML5 / Single File**: Entire application in `index.html` (or `japanese-music-station-v1.5.6.html`) with zero dependencies.
+* **HTML5 / Single File**: Entire application in `index.html` (or `japanese-music-station-v1.6.0.html`) with zero dependencies.
 * **React 18 & Babel Standalone**: Client-side reactive UI via Cloudflare CDNjs.
 * **Tailwind CSS**: Utility styling with inline configuration.
 * **YouTube IFrame API**: Video playback and state synchronization.
-* **Web Audio API**: Real-time 8-bit retro sound synthesizer (SFX).
-* **LocalStorage**: Persistent queue, history, and volume settings.
+* **Web Audio API**: Real-time ambient synthesizer for rain & wind sounds.
+* **LocalStorage**: Persistent queue, history, volume, and ambience preferences.

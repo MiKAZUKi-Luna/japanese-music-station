@@ -4,29 +4,40 @@ Chronological record of all updates, bug fixes, and refinements for **Japanese M
 
 ---
 
-## 📦 [Version 1.5.6] — Right Panel Height Optimization & Row Streamlining 📐
+## 📦 [Version 1.6.0] — Interactive Ambience (Time, Weather & Synthesized Audio) 🌌🌧️
 *Release Date: August 27, 2026*
 
-### 1. 100% Vertical Space Utilization in Right Panel
-* **Dynamic Full-Height Layout**: Replaced the fixed `max-h-[560px]` constraint with flexbox auto-stretching (`flex: 1 1 0%` + `min-height: 0`). The Queue and History scrollable lists now expand to occupy the entire vertical height of the panel, eliminating empty bottom gaps and fitting more songs comfortably.
+### 1. New Ambience Control System
+* **Header Button Replacement**: Replaced the obsolete `SFX ON / OFF` button in the top-right header with a dedicated **`AMBIENCE`** button (Keyboard Shortcut: **`A`**).
+* **Ambience Settings Modal**: Opens a retro arcade-styled pop-up with two distinct setting categories:
+  * **1. TIME OF DAY**:
+    * **`DAY`**: Vibrant daytime cyan/sky blue gradient, clear Mount Fuji silhouette, daytime building facade.
+    * **`DUSK`**: Classic twilight purple/sunset orange sky with warm glowing windows and neon signage.
+    * **`NIGHT`**: Deep starry midnight sky with illuminated Tokyo Tower and radiant neon signs.
+  * **2. WEATHER & AMBIENCE**:
+    * **`CLEAR`**: Pure clear sky with silent background (music only).
+    * **`RAIN`**: Canvas-driven pixel rain droplet animation + continuous procedural rain sound synthesis via Web Audio API.
+    * **`SNOW`**: Drifting pixel snowflakes animation + soft procedural wind/breeze audio synthesis via Web Audio API.
 
-### 2. Streamlined Single-Line Track Rows (Fixed Text Overlapping)
-* **Removed Redundant Sub-Labels**: Removed `ID:` and `Added:` timestamps from both Queue and History rows.
-* **Clean Single-Line Layout**: Track titles now occupy a single, crisp line with automatic text truncation (`...`), preventing text stacking or overlapping when resizing the browser window.
+### 2. State & Audio Persistence
+* Ambience selections (`TIME` and `WEATHER`) are automatically saved to `LocalStorage` and restored seamlessly upon page reload.
+* Audio generators automatically synchronize with weather changes and stop cleanly when switching to `CLEAR` or unmounting.
 
-### 3. History-to-Queue Transfer Cleanup
-* **Auto-Removal on Re-queue**: Clicking **`+ ADD TO QUEUE`** in the History tab now transfers the song into the active Queue and immediately removes it from History, avoiding redundant duplicate listings.
+---
 
-### 4. Unobstructed Video Display
-* **Removed Floating 'ON AIR' Badge Overlay**: Removed the overlay badge from inside the 16:9 video frame that was obstructing YouTube's native Settings Gear (⚙️) and CC buttons.
+## 📦 [Version 1.5.6] — Unobstructed Video Display & UI Symmetry 🛠️
+*Release Date: August 26, 2026*
+
+* Removed the floating `ON AIR` badge inside the 16:9 display that was covering YouTube's Settings Gear (⚙️).
+* Symmetrized typography and framing between Queue and History sub-panels.
+* Embedded SVG Favicon to eliminate 404 errors.
 
 ---
 
 ## 📦 [Version 1.5.5] — Symmetrical Panels & Favicon Integration 🎨
-*Release Date: August 27, 2026*
+*Release Date: August 26, 2026*
 
 * Standardized typography, colors, and layout symmetry between Queue and History sub-panels.
-* Embedded inline SVG pixel music note favicon (`♫`) in `<head>` to prevent `favicon.ico 404` errors.
 
 ---
 

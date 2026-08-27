@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Japanese Music Station</title>
   
-  <!-- Inline SVG Music Note Favicon -->
+  <!-- Inline SVG Music Note Favicon (Eliminates favicon.ico 404) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23131021'/><text y='.75em' x='50%' text-anchor='middle' font-size='70' fill='%23F57D7C'>%E2%99%AC</text></svg>">
 
   <!-- Retro Pixel Google Fonts -->
@@ -67,15 +67,11 @@
         width: 65%;
         flex: 0 0 65%;
         min-width: 0;
-        display: flex;
-        flex-direction: column;
       }
       .panel-right-container {
         width: 35%;
         flex: 0 0 35%;
         min-width: 0;
-        display: flex;
-        flex-direction: column;
       }
     }
 
@@ -230,6 +226,14 @@
       font-size: 1.2rem;
     }
 
+    .btn-dialog-choice {
+      height: 44px;
+      flex: 1;
+      min-width: 80px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
     /* Inputs */
     .pixel-input {
       border: 3px solid #3D2F4C;
@@ -264,6 +268,17 @@
       background: #E08573;
     }
 
+    /* Weather Particle Overlay Canvas */
+    #weather-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 5;
+    }
+
     /* Step-based retro animations */
     @keyframes marquee {
       0% { transform: translateX(100%); }
@@ -294,8 +309,11 @@
 </head>
 <body class="min-h-screen relative flex flex-col justify-between overflow-x-hidden selection:bg-[#F57D7C] selection:text-[#131021]">
 
-  <!-- Background Dusk Cityscape SVG Layer (Minimalist 16/32-Bit Pixel Art) -->
+  <!-- Background Cityscape SVG Layer (Dynamic Time & Weather Themes) -->
   <div id="cityscape-bg" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+  <!-- Weather Particle Overlay Canvas (Rain & Snow Animations) -->
+  <canvas id="weather-canvas"></canvas>
 
   <!-- React Root Container -->
   <div id="root" class="relative z-10 min-h-screen flex flex-col"></div>
@@ -319,49 +337,152 @@
       } catch (e) {}
     }
 
-    // SFX Sound Generator (8-bit Web Audio Synthesizer)
-    class SoundFX {
+    // Procedural Ambient Sound Engine (Web Audio API Synthesizer - Rain & Wind)
+    class AmbientAudioEngine {
       constructor() {
         this.ctx = null;
-        this.enabled = true;
+        this.rainNode = null;
+        this.rainGain = null;
+        this.windNode = null;
+        this.windGain = null;
+        this.masterGain = null;
+        this.currentSound = 'none'; // 'none' | 'rain' | 'snow'
       }
+
       init() {
         if (!this.ctx) {
           const AudioContext = window.AudioContext || window.webkitAudioContext;
-          if (AudioContext) this.ctx = new AudioContext();
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+            this.masterGain = this.ctx.createGain();
+            this.masterGain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+            this.masterGain.connect(this.ctx.destination);
+          }
         }
       }
-      playTone(freq, type, duration, vol = 0.08) {
-        if (!this.enabled) return;
+
+      // Generate Continuous Pink Noise Buffer (Rain Sound)
+      createPinkNoiseBuffer() {
+        if (!this.ctx) return null;
+        const bufferSize = this.ctx.sampleRate * 2;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+          b6 = white * 0.115926;
+        }
+        return buffer;
+      }
+
+      startRain() {
         try {
           this.init();
           if (!this.ctx) return;
           if (this.ctx.state === 'suspended') this.ctx.resume();
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          osc.type = type;
-          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-          gain.gain.setValueAtTime(vol, this.ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-          osc.connect(gain);
-          gain.connect(this.ctx.destination);
-          osc.start();
-          osc.stop(this.ctx.currentTime + duration);
+          this.stop();
+
+          const buffer = this.createPinkNoiseBuffer();
+          if (!buffer) return;
+
+          this.rainNode = this.ctx.createBufferSource();
+          this.rainNode.buffer = buffer;
+          this.rainNode.loop = true;
+
+          // Lowpass filter for smooth rain sound
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+
+          this.rainGain = this.ctx.createGain();
+          this.rainGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+          this.rainGain.gain.exponentialRampToValueAtTime(0.14, this.ctx.currentTime + 1.2);
+
+          this.rainNode.connect(filter);
+          filter.connect(this.rainGain);
+          this.rainGain.connect(this.masterGain);
+
+          this.rainNode.start();
+          this.currentSound = 'rain';
         } catch (e) {}
       }
-      click() { this.playTone(880, 'square', 0.04, 0.03); }
-      coin() {
-        this.playTone(987.77, 'square', 0.06, 0.04);
-        setTimeout(() => this.playTone(1318.51, 'square', 0.14, 0.04), 60);
+
+      startWind() {
+        try {
+          this.init();
+          if (!this.ctx) return;
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          this.stop();
+
+          const buffer = this.createPinkNoiseBuffer();
+          if (!buffer) return;
+
+          this.windNode = this.ctx.createBufferSource();
+          this.windNode.buffer = buffer;
+          this.windNode.loop = true;
+
+          // Bandpass filter with gentle low resonance for soft wind
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(320, this.ctx.currentTime);
+          filter.Q.setValueAtTime(2.5, this.ctx.currentTime);
+
+          // LFO oscillator to modulate wind intensity
+          const lfo = this.ctx.createOscillator();
+          lfo.frequency.setValueAtTime(0.2, this.ctx.currentTime);
+          const lfoGain = this.ctx.createGain();
+          lfoGain.gain.setValueAtTime(120, this.ctx.currentTime);
+          lfo.connect(lfoGain);
+          lfoGain.connect(filter.frequency);
+          lfo.start();
+
+          this.windGain = this.ctx.createGain();
+          this.windGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+          this.windGain.gain.exponentialRampToValueAtTime(0.09, this.ctx.currentTime + 1.5);
+
+          this.windNode.connect(filter);
+          filter.connect(this.windGain);
+          this.windGain.connect(this.masterGain);
+
+          this.windNode.start();
+          this.currentSound = 'snow';
+        } catch (e) {}
       }
-      delete() { this.playTone(220, 'sawtooth', 0.08, 0.04); }
-      switch() { this.playTone(523.25, 'triangle', 0.05, 0.04); }
-      open() {
-        this.playTone(440, 'square', 0.05, 0.04);
-        setTimeout(() => this.playTone(659.25, 'square', 0.08, 0.04), 50);
+
+      stop() {
+        try {
+          if (this.rainNode) {
+            this.rainNode.stop();
+            this.rainNode.disconnect();
+            this.rainNode = null;
+          }
+          if (this.windNode) {
+            this.windNode.stop();
+            this.windNode.disconnect();
+            this.windNode = null;
+          }
+          this.currentSound = 'none';
+        } catch (e) {}
+      }
+
+      setWeather(weather) {
+        if (weather === 'RAIN') {
+          this.startRain();
+        } else if (weather === 'SNOW') {
+          this.startWind();
+        } else {
+          this.stop();
+        }
       }
     }
-    const sfx = new SoundFX();
+    const ambientAudio = new AmbientAudioEngine();
 
     // Helper: Parse YouTube URL into Video ID
     function extractVideoId(url) {
@@ -431,7 +552,7 @@
       });
 
       const [isPlaying, setIsPlaying] = useState(false);
-      const [playerStatus, setPlayerStatus] = useState('empty'); // "playing" | "paused" | "empty"
+      const [playerStatus, setPlayerStatus] = useState('empty');
       
       // Default volume: 25%
       const [volume, setVolume] = useState(() => {
@@ -439,20 +560,25 @@
         return saved !== null ? Number(saved) : 25;
       });
 
+      // Ambience State (TIME: DAY / DUSK / NIGHT, WEATHER: CLEAR / RAIN / SNOW)
+      const [ambienceTime, setAmbienceTime] = useState(() => safeGet('jms_ambience_time', 'DUSK'));
+      const [ambienceWeather, setAmbienceWeather] = useState(() => safeGet('jms_ambience_weather', 'CLEAR'));
+
+      // Modals State
+      const [isSearchOpen, setIsSearchOpen] = useState(false);
+      const [isAmbienceOpen, setIsAmbienceOpen] = useState(false);
+
       // Additional UI State
       const [currentTime, setCurrentTime] = useState(0);
       const [duration, setDuration] = useState(0);
       const [isMuted, setIsMuted] = useState(false);
-      const [loopMode, setLoopMode] = useState('none'); // 'none' | 'one' | 'all'
+      const [loopMode, setLoopMode] = useState('none');
       const [playbackRate, setPlaybackRate] = useState(1);
       const [ccEnabled, setCcEnabled] = useState(false);
-      const [activeTab, setActiveTab] = useState('queue'); // 'queue' | 'history'
+      const [activeTab, setActiveTab] = useState('queue');
       const [toastMsg, setToastMsg] = useState(null);
 
-      // Search Arcade Modal State
-      const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-      // Refs to prevent stale closures in YouTube Player event callbacks
+      // Refs
       const queueRef = useRef(queue);
       const currentTrackRef = useRef(currentTrack);
       const historyRef = useRef(history);
@@ -473,32 +599,47 @@
       useEffect(() => { safeSet('jms_current_v13', JSON.stringify(currentTrack)); }, [currentTrack]);
       useEffect(() => { safeSet('jms_history_v13', JSON.stringify(history)); }, [history]);
       useEffect(() => { safeSet('jms_volume_v13', volume.toString()); }, [volume]);
+      useEffect(() => { safeSet('jms_ambience_time', ambienceTime); }, [ambienceTime]);
+      useEffect(() => { safeSet('jms_ambience_weather', ambienceWeather); }, [ambienceWeather]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
         setTimeout(() => setToastMsg(null), 3000);
       };
 
-      // Keyboard Shortcut to open search (Press '/' or 'Ctrl+K')
+      // Trigger Ambience Rendering and Sound Synchronization
+      useEffect(() => {
+        if (window.renderPixelBackground) {
+          window.renderPixelBackground(ambienceTime);
+        }
+        if (window.setWeatherCanvas) {
+          window.setWeatherCanvas(ambienceWeather);
+        }
+        ambientAudio.setWeather(ambienceWeather);
+      }, [ambienceTime, ambienceWeather]);
+
+      // Keyboard Shortcuts: '/' or 'Ctrl+K' for Search, 'A' for Ambience, 'Escape' to close
       useEffect(() => {
         const handleKeyDown = (e) => {
           if (e.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
             e.preventDefault();
-            sfx.open();
             setIsSearchOpen(true);
           } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
             e.preventDefault();
-            sfx.open();
             setIsSearchOpen(true);
-          } else if (e.key === 'Escape' && isSearchOpen) {
+          } else if ((e.key === 'a' || e.key === 'A') && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            setIsAmbienceOpen(prev => !prev);
+          } else if (e.key === 'Escape') {
             setIsSearchOpen(false);
+            setIsAmbienceOpen(false);
           }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-      }, [isSearchOpen]);
+      }, [isSearchOpen, isAmbienceOpen]);
 
-      // Initialize YouTube API safely (No empty videoId to prevent Error 153)
+      // Initialize YouTube API safely
       useEffect(() => {
         window.onYouTubeIframeAPIReady = () => {
           initYTPlayer();
@@ -515,6 +656,7 @@
 
         return () => {
           if (timerRef.current) clearInterval(timerRef.current);
+          ambientAudio.stop();
         };
       }, []);
 
@@ -526,7 +668,7 @@
             width: '100%',
             playerVars: {
               autoplay: 0,
-              controls: 1, // Full native YouTube controls (Settings Gear & CC Subtitles)
+              controls: 1,
               fs: 1,
               rel: 0,
               playsinline: 1,
@@ -610,7 +752,7 @@
         };
       }, [isPlaying]);
 
-      // Auto Advance on song end: Append played track to History in chronological order
+      // Auto Advance on song end
       function handleTrackEnded() {
         const currentMode = loopModeRef.current;
         const cur = currentTrackRef.current;
@@ -664,7 +806,6 @@
 
       // --- TRANSPORT ACTIONS ---
       const handlePlayPause = () => {
-        sfx.click();
         if (!currentTrack) {
           if (queue.length > 0) {
             handleNextTrack();
@@ -688,7 +829,6 @@
       };
 
       const handleNextTrack = () => {
-        sfx.click();
         if (queue.length === 0) {
           showToast('No more tracks in queue');
           return;
@@ -705,7 +845,6 @@
       };
 
       const handlePrevTrack = () => {
-        sfx.click();
         if (currentTime > 3 && playerRef.current && isPlayerReady.current) {
           playerRef.current.seekTo(0);
           return;
@@ -736,7 +875,6 @@
         const targetSec = clickPos * duration;
         playerRef.current.seekTo(targetSec, true);
         setCurrentTime(targetSec);
-        sfx.switch();
       };
 
       const handleVolumeChange = (newVol) => {
@@ -752,7 +890,6 @@
       };
 
       const handleToggleMute = () => {
-        sfx.click();
         if (playerRef.current && isPlayerReady.current) {
           if (isMuted) {
             playerRef.current.unMute();
@@ -765,14 +902,12 @@
       };
 
       const handleToggleLoop = () => {
-        sfx.click();
         const nextMode = loopMode === 'none' ? 'one' : loopMode === 'one' ? 'all' : 'none';
         setLoopMode(nextMode);
         showToast(nextMode === 'one' ? 'Repeat One Track' : nextMode === 'all' ? 'Repeat All Queue' : 'Repeat Off');
       };
 
       const handleShuffleQueue = () => {
-        sfx.coin();
         if (queue.length <= 1) {
           showToast('Need at least 2 tracks in queue to shuffle');
           return;
@@ -783,7 +918,6 @@
       };
 
       const handleToggleCC = () => {
-        sfx.click();
         if (playerRef.current && isPlayerReady.current) {
           try {
             if (!ccEnabled) {
@@ -815,7 +949,6 @@
           return false;
         }
 
-        sfx.coin();
         showToast('Fetching track title...');
         const title = await fetchVideoTitle(videoId);
 
@@ -832,7 +965,6 @@
       };
 
       const addDirectTrack = (videoId, title) => {
-        sfx.coin();
         const newTrack = {
           id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
           videoId: videoId,
@@ -844,7 +976,6 @@
       };
 
       const playDirectTrack = (videoId, title) => {
-        sfx.coin();
         const newTrack = {
           id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
           videoId: videoId,
@@ -859,9 +990,7 @@
         showToast(`Playing: ${newTrack.title}`);
       };
 
-      // Moving track from History back to Queue removes it from History (as requested)
-      const handleRequeueFromHistory = (track, historyIndex) => {
-        sfx.coin();
+      const handleRequeueFromHistory = (track) => {
         const newTrack = {
           id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
           videoId: track.videoId,
@@ -869,12 +998,10 @@
           addedAt: Date.now()
         };
         setQueue(prev => [...prev, newTrack]);
-        setHistory(prev => prev.filter((_, idx) => idx !== historyIndex));
-        showToast(`Moved "${newTrack.title || newTrack.videoId}" to queue`);
+        showToast(`Added "${newTrack.title || newTrack.videoId}" back to queue`);
       };
 
       const playNowFromQueue = (index) => {
-        sfx.click();
         if (index < 0 || index >= queue.length) return;
         const selected = queue[index];
         const updatedQueue = queue.filter((_, idx) => idx !== index);
@@ -889,7 +1016,6 @@
       };
 
       const moveQueueItem = (index, direction) => {
-        sfx.switch();
         const targetIndex = index + direction;
         if (targetIndex < 0 || targetIndex >= queue.length) return;
         
@@ -901,20 +1027,17 @@
       };
 
       const removeQueueItem = (index) => {
-        sfx.delete();
         setQueue(prev => prev.filter((_, idx) => idx !== index));
         showToast('Removed from queue');
       };
 
       const clearAllQueue = () => {
-        sfx.delete();
         if (queue.length === 0) return;
         setQueue([]);
         showToast('Queue cleared');
       };
 
       const clearHistory = () => {
-        sfx.delete();
         setHistory([]);
         showToast('History cleared');
       };
@@ -922,7 +1045,7 @@
       return (
         <div className="app-wrapper">
           
-          {/* Header Navigation Bar */}
+          {/* Header Navigation Bar (Music Note Icon, Ambience Button on Top-Right Corner) */}
           <header className="pixel-frame m-3 mb-0 p-3 flex flex-wrap items-center justify-between gap-3 bg-[#1D1728]/90">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-[#F57D7C] border-2 border-[#FFC061] flex items-center justify-center text-[#131021] text-2xl font-bold shadow-[2px_2px_0px_#000]">
@@ -943,17 +1066,14 @@
               </div>
             </div>
 
-            {/* Utility Toggles */}
+            {/* Top-Right Header Button: AMBIENCE (Replaces SFX ON) */}
             <div className="flex items-center gap-2">
               <button 
-                onClick={() => {
-                  sfx.enabled = !sfx.enabled;
-                  showToast(sfx.enabled ? '8-Bit SFX Enabled' : '8-Bit SFX Muted');
-                }}
-                className={`btn-header ${sfx.enabled ? 'btn-clicked' : 'btn-unclicked'}`}
-                title="Toggle 8-Bit Audio SFX"
+                onClick={() => setIsAmbienceOpen(true)}
+                className={`btn-header ${isAmbienceOpen ? 'btn-clicked' : 'btn-unclicked'}`}
+                title="Change Sky Time & Weather Ambience (Shortcut: A)"
               >
-                {sfx.enabled ? 'SFX ON' : 'SFX OFF'}
+                AMBIENCE
               </button>
             </div>
           </header>
@@ -994,7 +1114,7 @@
                 onAddTrack={addToQueue}
                 onClearQueue={clearAllQueue}
                 onShuffleQueue={handleShuffleQueue}
-                onOpenSearch={() => { sfx.open(); setIsSearchOpen(true); }}
+                onOpenSearch={() => setIsSearchOpen(true)}
                 onSetPlaybackRate={(rate) => {
                   setPlaybackRate(rate);
                   if (playerRef.current && isPlayerReady.current) {
@@ -1005,7 +1125,7 @@
               />
             </div>
 
-            {/* RIGHT PANEL (35% Width, Stretches 100% Height) */}
+            {/* RIGHT PANEL (35% Width) */}
             <div className="panel-right-container flex flex-col gap-3">
               <RightQueuePanel 
                 queue={queue}
@@ -1032,7 +1152,8 @@
               <span>QUEUE: <strong className="text-white">{queue.length} TRACKS</strong></span>
             </div>
             <div className="text-[#E08573] flex items-center gap-2">
-              <span>PIXEL ART × CITY POP DJ BOOTH</span>
+              <span>AMBIENCE: <strong className="text-[#FFC061]">{ambienceTime} / {ambienceWeather}</strong></span>
+              <span className="text-gray-600">|</span>
               <span className="text-[#FFC061]">Late Night Drive Music</span>
             </div>
           </footer>
@@ -1044,6 +1165,23 @@
               onAddTrack={addDirectTrack}
               onPlayTrack={playDirectTrack}
               showToast={showToast}
+            />
+          )}
+
+          {/* RETRO AMBIENCE CONTROLS MODAL (Time & Weather Customization) */}
+          {isAmbienceOpen && (
+            <AmbienceSettingsModal 
+              onClose={() => setIsAmbienceOpen(false)}
+              currentTime={ambienceTime}
+              onSelectTime={(t) => {
+                setAmbienceTime(t);
+                showToast(`Time Theme: ${t}`);
+              }}
+              currentWeather={ambienceWeather}
+              onSelectWeather={(w) => {
+                setAmbienceWeather(w);
+                showToast(w === 'RAIN' ? 'Weather: Rain & Rain Sound' : w === 'SNOW' ? 'Weather: Snow & Soft Wind' : 'Weather: Clear Sky');
+              }}
             />
           )}
         </div>
@@ -1095,7 +1233,7 @@
       return (
         <div className="flex flex-col gap-3">
           
-          {/* 16:9 YouTube Screen + DJ Frame (Clean Display without blocking overlay badge) */}
+          {/* 16:9 YouTube Screen + DJ Frame */}
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col">
             <div className="flex items-center justify-between mb-2 text-xs font-['Press_Start_2P'] text-[#FFC061]">
               <div className="flex items-center gap-2">
@@ -1109,11 +1247,8 @@
 
             {/* Video Container (Strict 16:9 Aspect Ratio, Clear Unobstructed Screen) */}
             <div className="relative w-full pb-[56.25%] pixel-frame-inset bg-[#131021] overflow-hidden group">
-              
-              {/* Actual YouTube IFrame Mounting Element */}
               <div id="youtube-player-embed" className="absolute inset-0 w-full h-full"></div>
 
-              {/* Minimalist Display Area Overlay ONLY when empty */}
               {playerStatus === 'empty' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#131021]/95 z-20 p-6 text-center">
                   <div className="font-['Press_Start_2P'] text-sm sm:text-base text-[#F57D7C] tracking-widest mb-2 border-b-2 border-[#3D2F4C] pb-2">
@@ -1202,7 +1337,7 @@
             </div>
           </div>
 
-          {/* URL INPUT & SEARCH BUTTON (Equal height & width) */}
+          {/* URL INPUT & SEARCH BUTTON */}
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs font-['Press_Start_2P'] text-[#E08573]">
               <span>ADD TRACK</span>
@@ -1239,7 +1374,7 @@
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               
-              {/* Primary Transport Group: Prev, Play/Pause, Next */}
+              {/* Primary Transport Group */}
               <div className="flex items-center gap-2">
                 <button 
                   onClick={onPrev}
@@ -1267,7 +1402,7 @@
                 </button>
               </div>
 
-              {/* Secondary Modes Group: Loop, Shuffle, CC */}
+              {/* Secondary Modes Group */}
               <div className="flex items-center gap-2">
                 <button 
                   onClick={onToggleLoop}
@@ -1355,7 +1490,7 @@
       );
     }
 
-    // --- RIGHT PANEL COMPONENT (100% Vertical Space Utilization & Clean Single-Line Rows) ---
+    // --- RIGHT PANEL COMPONENT (Queue & History) ---
     function RightQueuePanel({
       queue,
       history,
@@ -1370,31 +1505,29 @@
       onRequeue
     }) {
       return (
-        <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full flex-1">
+        <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full min-h-[500px]">
           
           {/* Panel Header & Navigation Tabs (Exact Equal 50/50 Width & Height) */}
-          <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2 shrink-0">
+          <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2">
             <button 
-              onClick={() => { sfx.switch(); setActiveTab('queue'); }}
+              onClick={() => setActiveTab('queue')}
               className={`btn-tab ${activeTab === 'queue' ? 'btn-clicked' : 'btn-unclicked'}`}
             >
               QUEUE ({queue.length})
             </button>
             
             <button 
-              onClick={() => { sfx.switch(); setActiveTab('history'); }}
+              onClick={() => setActiveTab('history')}
               className={`btn-tab ${activeTab === 'history' ? 'btn-clicked' : 'btn-unclicked'}`}
             >
               HISTORY ({history.length})
             </button>
           </div>
 
-          {/* TAB 1: QUEUE LIST (Expands 100% to fill panel height) */}
+          {/* TAB 1: QUEUE LIST */}
           {activeTab === 'queue' && (
-            <div className="flex flex-col flex-1 min-h-0 justify-between">
-              
-              {/* Queue Items Container (Fills 100% available space with custom scrollbar) */}
-              <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-2">
+            <div className="flex flex-col flex-1 justify-between">
+              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {queue.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
                     <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
@@ -1408,9 +1541,8 @@
                   queue.map((track, index) => (
                     <div 
                       key={track.id}
-                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[46px]"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
                     >
-                      {/* Left: Index + Play Button + Clean Single-Line Title */}
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           #{index + 1}
@@ -1424,14 +1556,16 @@
                           PLAY
                         </button>
 
-                        <div className="overflow-hidden min-w-0 flex-1">
-                          <span className="font-['VT323'] text-lg text-white font-medium truncate block group-hover:text-[#FFC061]" title={track.title}>
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                          <span className="font-['VT323'] text-lg text-white font-medium truncate group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || `YouTube Video [${track.videoId}]`}
+                          </span>
+                          <span className="text-xs text-gray-400 font-['VT323']">
+                            ID: {track.videoId} • Added {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
 
-                      {/* Right: Controls [▲] [▼] [✕] */}
                       <div className="flex items-center gap-1 shrink-0">
                         <button 
                           onClick={() => onMove(index, -1)}
@@ -1464,8 +1598,7 @@
                 )}
               </div>
 
-              {/* Bottom Actions for Queue */}
-              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2 shrink-0">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
                 <span className="text-xs font-['Silkscreen'] text-gray-400">
                   Total: {queue.length} tracks
                 </span>
@@ -1480,10 +1613,10 @@
             </div>
           )}
 
-          {/* TAB 2: PLAYBACK HISTORY (Expands 100% to fill panel height) */}
+          {/* TAB 2: PLAYBACK HISTORY */}
           {activeTab === 'history' && (
-            <div className="flex flex-col flex-1 min-h-0 justify-between">
-              <div className="flex-1 min-h-0 overflow-y-auto max-h-[100%] pr-1 flex flex-col gap-2">
+            <div className="flex flex-col flex-1 justify-between">
+              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {history.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
                     <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
@@ -1497,24 +1630,26 @@
                   history.map((track, index) => (
                     <div 
                       key={track.id + '_' + index}
-                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[46px]"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
                     >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           {index + 1}.
                         </span>
-                        <div className="overflow-hidden min-w-0 flex-1">
-                          <span className="font-['VT323'] text-lg text-white font-medium truncate block group-hover:text-[#FFC061]" title={track.title}>
+                        <div className="flex flex-col overflow-hidden min-w-0">
+                          <span className="font-['VT323'] text-lg text-white font-bold truncate group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || track.videoId}
+                          </span>
+                          <span className="text-xs text-gray-400 font-['VT323']">
+                            ID: {track.videoId}
                           </span>
                         </div>
                       </div>
 
-                      {/* Re-add button: Moves track from History to Queue */}
                       <button 
-                        onClick={() => onRequeue(track, index)}
-                        className="btn-unclicked text-xs shrink-0 h-[28px] px-2.5 font-bold"
-                        title="Move this track back to queue"
+                        onClick={() => onRequeue(track)}
+                        className="btn-unclicked text-xs shrink-0 h-[28px] px-2.5"
+                        title="Add this track back to queue"
                       >
                         + ADD TO QUEUE
                       </button>
@@ -1523,8 +1658,7 @@
                 )}
               </div>
 
-              {/* Bottom Actions for History */}
-              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2 shrink-0">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
                 <span className="text-xs font-['Silkscreen'] text-gray-400">
                   History: {history.length} items
                 </span>
@@ -1561,11 +1695,9 @@
         const q = (queryText || searchQuery).trim();
         if (!q) return;
 
-        sfx.click();
         setIsSearching(true);
         setResults([]);
 
-        // Tier 0: Direct YouTube URL or Video ID
         const directId = extractVideoId(q);
         if (directId) {
           const title = await fetchVideoTitle(directId);
@@ -1581,7 +1713,6 @@
 
         let searchSuccess = false;
 
-        // Tier 1: Real YouTube Official Search via allorigins.win and corsproxy.io
         const corsProxies = [
           `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
           `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`
@@ -1632,7 +1763,6 @@
           } catch (e) {}
         }
 
-        // Tier 2: Piped API Endpoints with Native CORS
         if (!searchSuccess) {
           const pipedEndpoints = [
             `https://api.piped.private.coffee/search?q=${encodeURIComponent(q)}&filter=videos`,
@@ -1698,7 +1828,6 @@
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-[#131021]/85 backdrop-blur-sm">
           <div className="pixel-frame-arcade w-full max-w-3xl max-h-[85vh] flex flex-col p-4 bg-[#1D1728]/95 shadow-[8px_8px_0px_#000] border-4 border-[#F57D7C] relative">
             
-            {/* Arcade Modal Header */}
             <div className="flex items-center justify-between border-b-2 border-[#3D2F4C] pb-3 mb-3">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 bg-[#FFC061] border border-[#F57D7C] animate-pulse"></span>
@@ -1708,7 +1837,7 @@
               </div>
               
               <button 
-                onClick={() => { sfx.click(); onClose(); }}
+                onClick={onClose}
                 className="btn-unclicked pixel-btn-danger text-sm font-bold"
                 style={{ height: '36px', padding: '0 12px' }}
                 title="Close Window (Escape)"
@@ -1717,7 +1846,6 @@
               </button>
             </div>
 
-            {/* Arcade Search Bar Form */}
             <form onSubmit={handleFormSubmit} className="flex gap-2 mb-3">
               <input 
                 ref={inputRef}
@@ -1737,7 +1865,6 @@
               </button>
             </form>
 
-            {/* Search Results Display Area */}
             <div className="flex-1 overflow-y-auto pr-1 flex flex-col gap-2.5 min-h-[280px] max-h-[460px]">
               {isSearching ? (
                 <div className="pixel-frame-inset p-8 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/80">
@@ -1763,7 +1890,6 @@
                     key={item.videoId}
                     className="pixel-frame p-2.5 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
                   >
-                    {/* Left: Thumbnail & Details */}
                     <div className="flex items-center gap-3 overflow-hidden flex-1 min-w-0 w-full sm:w-auto">
                       <div className="relative w-24 sm:w-28 pb-[14%] sm:pb-[16%] shrink-0 bg-[#131021] border-2 border-[#3D2F4C] overflow-hidden">
                         <img 
@@ -1792,7 +1918,6 @@
                       </div>
                     </div>
 
-                    {/* Right: Actions */}
                     <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
                       <button 
                         onClick={() => {
@@ -1820,10 +1945,96 @@
               )}
             </div>
 
-            {/* Arcade Modal Footer */}
             <div className="pt-3 mt-3 border-t-2 border-[#3D2F4C] flex items-center justify-between text-xs text-gray-400 font-['Silkscreen']">
               <span>PRESS [ESC] TO CLOSE</span>
               <span>1-CLICK ADD TO QUEUE</span>
+            </div>
+
+          </div>
+        </div>
+      );
+    }
+
+    // --- RETRO AMBIENCE CONTROLS POP-UP MODAL (TIME: DAY/DUSK/NIGHT & WEATHER: CLEAR/RAIN/SNOW) ---
+    function AmbienceSettingsModal({ onClose, currentTime, onSelectTime, currentWeather, onSelectWeather }) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-[#131021]/85 backdrop-blur-sm">
+          <div className="pixel-frame-arcade w-full max-w-xl flex flex-col p-5 bg-[#1D1728]/95 shadow-[8px_8px_0px_#000] border-4 border-[#F57D7C] relative">
+            
+            {/* Header */}
+            <div className="flex items-center justify-between border-b-2 border-[#3D2F4C] pb-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 bg-[#FFC061] border border-[#F57D7C] animate-pulse"></span>
+                <span className="font-['Press_Start_2P'] text-sm sm:text-base text-[#FFC061] tracking-wider">
+                  AMBIENCE CONTROLS
+                </span>
+              </div>
+              
+              <button 
+                onClick={onClose}
+                className="btn-unclicked pixel-btn-danger text-sm font-bold"
+                style={{ height: '36px', padding: '0 12px' }}
+                title="Close Window (Escape)"
+              >
+                ✕ ESC
+              </button>
+            </div>
+
+            {/* Section 1: TIME (DAY / DUSK / NIGHT) */}
+            <div className="pixel-frame p-3 bg-[#2A2238]/60 mb-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-['Press_Start_2P'] text-[#E08573]">
+                <span>1. TIME OF DAY</span>
+                <span className="text-[#FFC061] font-['Silkscreen']">[{currentTime}]</span>
+              </div>
+              
+              <div className="flex gap-2">
+                {['DAY', 'DUSK', 'NIGHT'].map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => onSelectTime(t)}
+                    className={`btn-dialog-choice ${currentTime === t ? 'btn-clicked' : 'btn-unclicked'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 2: WEATHER (CLEAR / RAIN / SNOW) */}
+            <div className="pixel-frame p-3 bg-[#2A2238]/60 mb-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between text-xs font-['Press_Start_2P'] text-[#E08573]">
+                <span>2. WEATHER & AMBIENCE</span>
+                <span className="text-[#FFC061] font-['Silkscreen']">[{currentWeather}]</span>
+              </div>
+              
+              <div className="flex gap-2">
+                {[
+                  { id: 'CLEAR', label: 'CLEAR', desc: 'Silent / Clear Sky' },
+                  { id: 'RAIN', label: 'RAIN', desc: 'Raindrops & Rain Audio' },
+                  { id: 'SNOW', label: 'SNOW', desc: 'Snowflakes & Soft Wind' }
+                ].map((w) => (
+                  <button
+                    key={w.id}
+                    onClick={() => onSelectWeather(w.id)}
+                    className={`btn-dialog-choice ${currentWeather === w.id ? 'btn-clicked' : 'btn-unclicked'}`}
+                    title={w.desc}
+                  >
+                    {w.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Modal Footer Description */}
+            <div className="pt-2 text-xs font-['VT323'] text-gray-400 flex flex-col gap-1">
+              <p>• <strong>RAIN</strong>: Drops pixel rain + gentle background rain white-noise.</p>
+              <p>• <strong>SNOW</strong>: Drifts pixel snowflakes + gentle soft wind breeze.</p>
+              <p>• <strong>CLEAR</strong>: Normal silent backdrop with no weather overlay.</p>
+            </div>
+
+            <div className="pt-3 mt-3 border-t-2 border-[#3D2F4C] flex items-center justify-between text-xs text-gray-400 font-['Silkscreen']">
+              <span>PRESS [ESC] TO CLOSE</span>
+              <span>SYNTHESIZED AMBIENCE</span>
             </div>
 
           </div>
@@ -1846,33 +2057,102 @@
     }
   </script>
 
-  <!-- Procedural Detailed 16/32-Bit Pixel Art Dusk Cityscape Background -->
+  <!-- Procedural Detailed 16/32-Bit Pixel Art Background (DAY / DUSK / NIGHT Dynamic Themes) -->
   <script>
-    function renderPixelDuskAlley() {
+    window.renderPixelBackground = function(timeTheme) {
       const bg = document.getElementById('cityscape-bg');
       if (!bg) return;
+
+      const theme = timeTheme || 'DUSK';
+
+      let skyStops = '';
+      let fujiGradStops = '';
+      let bldgFill = '#1D1728';
+      let bldgBackFill = '#2A1B38';
+      let starOpacity = '1';
+      let windowOpacity = '0.75';
+      let windowColor = '#FFC061';
+      let neon1Color = '#F57D7C';
+      let neon2Color = '#FFC061';
+
+      if (theme === 'DAY') {
+        skyStops = `
+          <stop offset="0%" stop-color="#4A90E2" />
+          <stop offset="30%" stop-color="#67B8DE" />
+          <stop offset="60%" stop-color="#9ADBE8" />
+          <stop offset="85%" stop-color="#CBEBF6" />
+          <stop offset="100%" stop-color="#E8F7FC" />
+        `;
+        fujiGradStops = `
+          <stop offset="0%" stop-color="#5C7C9E" />
+          <stop offset="50%" stop-color="#3D536E" />
+          <stop offset="100%" stop-color="#243447" />
+        `;
+        bldgFill = '#2D3A4B';
+        bldgBackFill = '#3D4F66';
+        starOpacity = '0';
+        windowOpacity = '0.35';
+        windowColor = '#CBEBF6';
+        neon1Color = '#CBEBF6';
+        neon2Color = '#9ADBE8';
+      } else if (theme === 'NIGHT') {
+        skyStops = `
+          <stop offset="0%" stop-color="#090714" />
+          <stop offset="35%" stop-color="#120E24" />
+          <stop offset="70%" stop-color="#1F1838" />
+          <stop offset="90%" stop-color="#2D234A" />
+          <stop offset="100%" stop-color="#3F325E" />
+        `;
+        fujiGradStops = `
+          <stop offset="0%" stop-color="#3F325E" />
+          <stop offset="40%" stop-color="#1F1838" />
+          <stop offset="100%" stop-color="#090714" />
+        `;
+        bldgFill = '#110D1E';
+        bldgBackFill = '#1B142E';
+        starOpacity = '1';
+        windowOpacity = '0.90';
+        windowColor = '#FFC061';
+        neon1Color = '#F57D7C';
+        neon2Color = '#FFC061';
+      } else {
+        // DUSK (Default)
+        skyStops = `
+          <stop offset="0%" stop-color="#1F1A3A" />
+          <stop offset="35%" stop-color="#5B3256" />
+          <stop offset="65%" stop-color="#A2536A" />
+          <stop offset="90%" stop-color="#E08573" />
+          <stop offset="100%" stop-color="#FFC061" />
+        `;
+        fujiGradStops = `
+          <stop offset="0%" stop-color="#A2536A" />
+          <stop offset="40%" stop-color="#3D2F4C" />
+          <stop offset="100%" stop-color="#1F1A3A" />
+        `;
+        bldgFill = '#1D1728';
+        bldgBackFill = '#2A1B38';
+        starOpacity = '0.85';
+        windowOpacity = '0.75';
+        windowColor = '#FFC061';
+        neon1Color = '#F57D7C';
+        neon2Color = '#FFC061';
+      }
 
       const svg = `
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" class="w-full h-full object-cover" preserveAspectRatio="xMidYMid slice" style="image-rendering: pixelated;">
         <defs>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#1F1A3A" />
-            <stop offset="35%" stop-color="#5B3256" />
-            <stop offset="65%" stop-color="#A2536A" />
-            <stop offset="90%" stop-color="#E08573" />
-            <stop offset="100%" stop-color="#FFC061" />
+            ${skyStops}
           </linearGradient>
 
           <linearGradient id="fujiGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#A2536A" />
-            <stop offset="40%" stop-color="#3D2F4C" />
-            <stop offset="100%" stop-color="#1F1A3A" />
+            ${fujiGradStops}
           </linearGradient>
         </defs>
 
         <rect width="1920" height="1080" fill="url(#skyGrad)" />
 
-        <g fill="#FFF">
+        <g fill="#FFF" opacity="${starOpacity}">
           <rect x="150" y="80" width="6" height="6" class="star-1" fill="#FFC061" />
           <rect x="147" y="83" width="12" height="2" class="star-1" fill="#FFC061" />
           <rect x="152" y="78" width="2" height="12" class="star-1" fill="#FFC061" />
@@ -1899,7 +2179,7 @@
           <polygon points="920,390 960,340 1020,340 1060,390 1030,410 1000,395 980,415 950,400" fill="#E08573" opacity="0.6" />
         </g>
 
-        <g fill="#2A1B38">
+        <g fill="${bldgBackFill}">
           <rect x="0" y="520" width="140" height="350" />
           <rect x="120" y="560" width="110" height="300" />
           <rect x="210" y="490" width="90" height="380" />
@@ -1918,7 +2198,7 @@
           <rect x="1730" y="530" width="190" height="350" />
         </g>
 
-        <g fill="#FFC061" opacity="0.75">
+        <g fill="${windowColor}" opacity="${windowOpacity}">
           <rect x="30" y="540" width="6" height="8" />
           <rect x="50" y="540" width="6" height="8" />
           <rect x="70" y="540" width="6" height="8" />
@@ -1937,7 +2217,7 @@
           <rect x="1650" y="540" width="8" height="10" />
         </g>
 
-        <g fill="#1D1728">
+        <g fill="${bldgFill}">
           <rect x="0" y="580" width="380" height="500" />
           <polygon points="0,580 390,580 370,555 -10,555" fill="#3D2F4C" />
           <rect x="0" y="576" width="385" height="5" fill="#5B3256" />
@@ -1950,37 +2230,37 @@
         <g id="neon-signs">
           <!-- LEFT SIGN 1: MIDNIGHT -->
           <rect x="310" y="610" width="45" height="180" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
-          <rect x="315" y="618" width="35" height="164" fill="#F57D7C" opacity="0.15" />
-          <text x="332" y="645" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">M</text>
-          <text x="332" y="665" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">I</text>
-          <text x="332" y="685" font-family="'Press Start 2P', monospace" font-size="10" fill="#FFC061" text-anchor="middle">D</text>
-          <text x="332" y="705" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">N</text>
-          <text x="332" y="725" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">I</text>
-          <text x="332" y="745" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">G</text>
-          <text x="332" y="765" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">H</text>
-          <text x="332" y="785" font-family="'Press Start 2P', monospace" font-size="10" fill="#F57D7C" text-anchor="middle">T</text>
+          <rect x="315" y="618" width="35" height="164" fill="${neon1Color}" opacity="0.15" />
+          <text x="332" y="645" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon2Color}" text-anchor="middle">M</text>
+          <text x="332" y="665" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon2Color}" text-anchor="middle">I</text>
+          <text x="332" y="685" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon2Color}" text-anchor="middle">D</text>
+          <text x="332" y="705" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon1Color}" text-anchor="middle">N</text>
+          <text x="332" y="725" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon1Color}" text-anchor="middle">I</text>
+          <text x="332" y="745" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon1Color}" text-anchor="middle">G</text>
+          <text x="332" y="765" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon1Color}" text-anchor="middle">H</text>
+          <text x="332" y="785" font-family="'Press Start 2P', monospace" font-size="10" fill="${neon1Color}" text-anchor="middle">T</text>
 
           <!-- LEFT SIGN 2: CITY POP -->
-          <rect x="40" y="620" width="220" height="55" fill="#131021" stroke="#F57D7C" stroke-width="3" />
-          <text x="150" y="658" font-family="'Press Start 2P', monospace" font-size="18" fill="#F57D7C" text-anchor="middle" font-weight="bold">CITY POP</text>
+          <rect x="40" y="620" width="220" height="55" fill="#131021" stroke="${neon1Color}" stroke-width="3" />
+          <text x="150" y="658" font-family="'Press Start 2P', monospace" font-size="18" fill="${neon1Color}" text-anchor="middle" font-weight="bold">CITY POP</text>
 
           <!-- Lit Window -->
-          <rect x="60" y="720" width="180" height="110" fill="#FFC061" stroke="#3D2F4C" stroke-width="4" opacity="0.9" />
+          <rect x="60" y="720" width="180" height="110" fill="${windowColor}" stroke="#3D2F4C" stroke-width="4" opacity="${windowOpacity}" />
           <line x1="150" y1="720" x2="150" y2="830" stroke="#2A2238" stroke-width="4" />
           <line x1="60" y1="775" x2="240" y2="775" stroke="#2A2238" stroke-width="4" />
           <rect x="180" y="790" width="20" height="20" fill="#131021" />
           <polygon points="190,790 175,765 190,775 205,765" fill="#131021" />
 
           <!-- RIGHT SIGN 1: NIGHT FLIGHT BAR -->
-          <rect x="1565" y="590" width="50" height="210" fill="#131021" stroke="#FFC061" stroke-width="3" />
-          <text x="1590" y="625" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">N</text>
-          <text x="1590" y="645" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">I</text>
-          <text x="1590" y="665" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">G</text>
-          <text x="1590" y="685" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">H</text>
-          <text x="1590" y="705" font-family="'Press Start 2P', monospace" font-size="9" fill="#F57D7C" text-anchor="middle">T</text>
-          <text x="1590" y="735" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">B</text>
-          <text x="1590" y="755" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">A</text>
-          <text x="1590" y="775" font-family="'Press Start 2P', monospace" font-size="9" fill="#FFC061" text-anchor="middle">R</text>
+          <rect x="1565" y="590" width="50" height="210" fill="#131021" stroke="${neon2Color}" stroke-width="3" />
+          <text x="1590" y="625" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon1Color}" text-anchor="middle">N</text>
+          <text x="1590" y="645" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon1Color}" text-anchor="middle">I</text>
+          <text x="1590" y="665" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon1Color}" text-anchor="middle">G</text>
+          <text x="1590" y="685" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon1Color}" text-anchor="middle">H</text>
+          <text x="1590" y="705" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon1Color}" text-anchor="middle">T</text>
+          <text x="1590" y="735" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon2Color}" text-anchor="middle">B</text>
+          <text x="1590" y="755" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon2Color}" text-anchor="middle">A</text>
+          <text x="1590" y="775" font-family="'Press Start 2P', monospace" font-size="9" fill="${neon2Color}" text-anchor="middle">R</text>
 
           <!-- Lantern -->
           <g id="lantern">
@@ -1993,7 +2273,7 @@
 
           <!-- RIGHT SIGN 2: CAFE 80s -->
           <rect x="1740" y="630" width="150" height="45" fill="#131021" stroke="#3D2F4C" stroke-width="3" />
-          <text x="1815" y="660" font-family="'Press Start 2P', monospace" font-size="13" fill="#FFC061" text-anchor="middle">CAFE 80s</text>
+          <text x="1815" y="660" font-family="'Press Start 2P', monospace" font-size="13" fill="${neon2Color}" text-anchor="middle">CAFE 80s</text>
         </g>
 
         <g id="power-lines">
@@ -2028,13 +2308,91 @@
       </svg>
       `;
       bg.innerHTML = svg;
-    }
+    };
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', renderPixelDuskAlley);
-    } else {
-      renderPixelDuskAlley();
-    }
+    // Canvas Particle Generator for Rain & Snow
+    (function initWeatherParticles() {
+      const canvas = document.getElementById('weather-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let animationFrameId = null;
+      let weatherType = 'CLEAR';
+      let particles = [];
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function createParticles() {
+        particles = [];
+        const count = weatherType === 'RAIN' ? 120 : weatherType === 'SNOW' ? 90 : 0;
+        for (let i = 0; i < count; i++) {
+          particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            length: Math.random() * 14 + 10,
+            speedY: weatherType === 'RAIN' ? (Math.random() * 12 + 14) : (Math.random() * 2 + 1.2),
+            speedX: weatherType === 'RAIN' ? (Math.random() * 2 - 4) : (Math.sin(Math.random() * 2) * 1.5 - 0.5),
+            size: weatherType === 'SNOW' ? (Math.random() * 4 + 2) : 2,
+            opacity: Math.random() * 0.5 + 0.3
+          });
+        }
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (weatherType === 'RAIN') {
+          ctx.strokeStyle = '#9ADBE8';
+          ctx.lineWidth = 2;
+          for (let p of particles) {
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + p.speedX * 2, p.y + p.length);
+            ctx.stroke();
+
+            p.y += p.speedY;
+            p.x += p.speedX;
+            if (p.y > canvas.height) {
+              p.y = -20;
+              p.x = Math.random() * (canvas.width + 200);
+            }
+          }
+        } else if (weatherType === 'SNOW') {
+          ctx.fillStyle = '#FFFFFF';
+          for (let p of particles) {
+            ctx.globalAlpha = p.opacity;
+            ctx.fillRect(Math.floor(p.x), Math.floor(p.y), p.size, p.size);
+            p.y += p.speedY;
+            p.x += Math.sin(p.y * 0.02) * 1.2;
+            if (p.y > canvas.height) {
+              p.y = -10;
+              p.x = Math.random() * canvas.width;
+            }
+          }
+          ctx.globalAlpha = 1;
+        }
+
+        animationFrameId = requestAnimationFrame(loop);
+      }
+
+      window.setWeatherCanvas = function(w) {
+        weatherType = w;
+        createParticles();
+      };
+
+      loop();
+    })();
+
+    // Initial render
+    window.addEventListener('DOMContentLoaded', () => {
+      const initialTime = safeGet('jms_ambience_time', 'DUSK');
+      const initialWeather = safeGet('jms_ambience_weather', 'CLEAR');
+      if (window.renderPixelBackground) window.renderPixelBackground(initialTime);
+      if (window.setWeatherCanvas) window.setWeatherCanvas(initialWeather);
+    });
   </script>
 </body>
 </html>
