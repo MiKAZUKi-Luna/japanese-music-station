@@ -4,24 +4,32 @@ Chronological record of all updates, bug fixes, and refinements for **Japanese M
 
 ---
 
+## 📦 [Version 1.5.5] — Unobstructed Video Display, Panel Symmetry & Favicon 🛠️
+*Release Date: August 27, 2026*
+
+### 1. Unobstructed 16:9 Video Screen
+* **Removed Floating 'ON AIR' Badge Overlay**: Removed the small rectangular overlay badge inside the top-right corner of the video area that was obstructing YouTube's native Settings Gear (⚙️) and Share controls. The top status indicator (`● ON AIR` / `■ STANDBY`) in the booth frame header remains intact.
+
+### 2. Symmetrical Typography & Layout for Right Panel
+* **Empty State Cards**: Harmonized font families (`Press Start 2P` header, `VT323` subtitle), colors (`#FFC061` header, `#E08573` subtitle), and box sizes across both `QUEUE` and `HISTORY` tabs.
+* **Track Rows & Action Bars**: Aligned row item fonts (`VT323 text-lg`), index badges (`#E08573`), button heights (`28px`), and footer Clear buttons (`36px`).
+
+### 3. Integrated SVG Favicon (Fixed Favicon 404)
+* Embedded an inline SVG music note favicon (`♫`) in the HTML `<head>` data URI to prevent browser 404 errors for `favicon.ico`.
+
+---
+
 ## 📦 [Version 1.5.4] — Universal CORS-Free YouTube Search Engine 🔍
 *Release Date: August 26, 2026*
 
-### 1. Fixed CORS Block on YouTube Search
-* **Problem**: Invidious API instances blocked cross-origin requests from `*.netlify.app` with CORS 403 / 401 errors, leaving the search modal in an endless loading state.
-* **Solution**: Rebuilt the search engine with a **Multi-Tier CORS-Free Architecture**:
-  * **Tier 1 (Official YouTube Parser)**: Scrapes and parses official `ytInitialData` directly via reliable CORS proxies, returning live YouTube search results.
-  * **Tier 2 (Piped API Fallback)**: Multi-instance Piped API endpoints configured with `Access-Control-Allow-Origin: *`.
-  * **Tier 3 (Proxied Invidious)**: Invidious API piped through CORS proxies.
-  * **Tier 4 (Direct URL / ID Parser)**: Instant recognition and parsing when a direct YouTube link is entered into the search bar.
+* **Fixed CORS Block on Search**: Rebuilt the search engine with a multi-proxy fallback and direct YouTube HTML parser, ensuring reliable search results across all browsers without API keys.
 
 ---
 
 ## 📦 [Version 1.5.3] — Unified Button System & Group Dimensions 📐
 *Release Date: August 25, 2026*
 
-* Standardized all button states across the app (`[unclicked]` vs `[clicked]`).
-* Harmonized dimensions across button groups (Tabs, Transport, Modes, Speeds, Form actions).
+* Standardized button color states (`[unclicked]` vs `[clicked]`) and group button sizing.
 
 ---
 

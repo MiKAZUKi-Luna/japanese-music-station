@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Japanese Music Station</title>
   
+  <!-- Inline SVG Music Note Favicon (Eliminates favicon.ico 404) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23131021'/><text y='.75em' x='50%' text-anchor='middle' font-size='70' fill='%23F57D7C'>%E2%99%AC</text></svg>">
+
   <!-- Retro Pixel Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +39,7 @@
       padding: 0;
     }
 
-    /* Core 65:35 Responsive Grid & Flex Layouts (100% Self-Contained CSS) */
+    /* Core 65:35 Responsive Grid & Flex Layouts */
     .app-wrapper {
       max-width: 1650px;
       width: 100%;
@@ -400,7 +403,7 @@
     // --- MAIN PARENT COMPONENT ---
     function App() {
       const [queue, setQueue] = useState(() => {
-        const saved = safeGet('jms_queue_v10', null);
+        const saved = safeGet('jms_queue_v12', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -408,7 +411,7 @@
       });
 
       const [currentTrack, setCurrentTrack] = useState(() => {
-        const saved = safeGet('jms_current_v10', null);
+        const saved = safeGet('jms_current_v12', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -416,7 +419,7 @@
       });
 
       const [history, setHistory] = useState(() => {
-        const saved = safeGet('jms_history_v10', null);
+        const saved = safeGet('jms_history_v12', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -428,7 +431,7 @@
       
       // Default volume: 25%
       const [volume, setVolume] = useState(() => {
-        const saved = safeGet('jms_volume_v10', null);
+        const saved = safeGet('jms_volume_v12', null);
         return saved !== null ? Number(saved) : 25;
       });
 
@@ -462,10 +465,10 @@
       useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
       // Persist state
-      useEffect(() => { safeSet('jms_queue_v10', JSON.stringify(queue)); }, [queue]);
-      useEffect(() => { safeSet('jms_current_v10', JSON.stringify(currentTrack)); }, [currentTrack]);
-      useEffect(() => { safeSet('jms_history_v10', JSON.stringify(history)); }, [history]);
-      useEffect(() => { safeSet('jms_volume_v10', volume.toString()); }, [volume]);
+      useEffect(() => { safeSet('jms_queue_v12', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { safeSet('jms_current_v12', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { safeSet('jms_history_v12', JSON.stringify(history)); }, [history]);
+      useEffect(() => { safeSet('jms_volume_v12', volume.toString()); }, [volume]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
@@ -1086,7 +1089,7 @@
       return (
         <div className="flex flex-col gap-3">
           
-          {/* 16:9 YouTube Screen + DJ Frame */}
+          {/* 16:9 YouTube Screen + DJ Frame (Clean Display without blocking overlay badge) */}
           <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col">
             <div className="flex items-center justify-between mb-2 text-xs font-['Press_Start_2P'] text-[#FFC061]">
               <div className="flex items-center gap-2">
@@ -1098,13 +1101,13 @@
               </span>
             </div>
 
-            {/* Video Container (Strict 16:9 Aspect Ratio) */}
+            {/* Video Container (Strict 16:9 Aspect Ratio, Clear Unobstructed Screen) */}
             <div className="relative w-full pb-[56.25%] pixel-frame-inset bg-[#131021] overflow-hidden group">
               
               {/* Actual YouTube IFrame Mounting Element */}
               <div id="youtube-player-embed" className="absolute inset-0 w-full h-full"></div>
 
-              {/* Minimalist Display Area Overlay when empty */}
+              {/* Minimalist Display Area Overlay ONLY when empty */}
               {playerStatus === 'empty' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#131021]/95 z-20 p-6 text-center">
                   <div className="font-['Press_Start_2P'] text-sm sm:text-base text-[#F57D7C] tracking-widest mb-2 border-b-2 border-[#3D2F4C] pb-2">
@@ -1113,14 +1116,6 @@
                   <p className="font-['VT323'] text-base sm:text-lg text-[#E08573] max-w-md">
                     Search YouTube or paste a URL below to start your queue
                   </p>
-                </div>
-              )}
-
-              {/* Minimalist On-Air Badge */}
-              {isPlaying && (
-                <div className="absolute top-2 right-2 bg-[#131021]/85 border-2 border-[#3D2F4C] px-2.5 py-1 flex items-center gap-1.5 z-10 pointer-events-none">
-                  <span className="inline-block w-2 h-2 bg-[#F57D7C] animate-pulse"></span>
-                  <span className="text-xs text-[#FFC061] font-['Silkscreen'] tracking-wider">ON AIR</span>
                 </div>
               )}
             </div>
@@ -1266,7 +1261,7 @@
                 </button>
               </div>
 
-              {/* Secondary Modes Group: Loop, Shuffle, CC (Identical Dimensions) */}
+              {/* Secondary Modes Group: Loop, Shuffle, CC */}
               <div className="flex items-center gap-2">
                 <button 
                   onClick={onToggleLoop}
@@ -1354,7 +1349,7 @@
       );
     }
 
-    // --- RIGHT PANEL COMPONENT ---
+    // --- RIGHT PANEL COMPONENT (100% Symmetrical Queue & History Sub-panels) ---
     function RightQueuePanel({
       queue,
       history,
@@ -1371,7 +1366,7 @@
       return (
         <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full min-h-[500px]">
           
-          {/* Panel Header & Navigation Tabs */}
+          {/* Panel Header & Navigation Tabs (Exact Equal 50/50 Width & Height) */}
           <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2">
             <button 
               onClick={() => { sfx.switch(); setActiveTab('queue'); }}
@@ -1395,11 +1390,11 @@
               {/* Queue Items Container */}
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {queue.length === 0 ? (
-                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
-                    <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] mb-1">
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
+                    <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
                       QUEUE IS EMPTY
                     </div>
-                    <p className="font-['VT323'] text-base text-gray-400">
+                    <p className="font-['VT323'] text-lg text-[#E08573]">
                       Search YouTube or paste a link on the left to add tracks
                     </p>
                   </div>
@@ -1407,25 +1402,24 @@
                   queue.map((track, index) => (
                     <div 
                       key={track.id}
-                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
                     >
                       {/* Left: Index + Play Button + Info */}
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                        <span className="w-6 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
+                        <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           #{index + 1}
                         </span>
 
                         <button 
                           onClick={() => onPlayNow(index)}
-                          className="btn-unclicked text-xs hover:bg-white font-bold shrink-0"
-                          style={{ padding: '2px 8px', height: '28px' }}
+                          className="btn-unclicked text-xs hover:bg-white font-bold shrink-0 h-[28px] px-2"
                           title="Play this track now"
                         >
                           PLAY
                         </button>
 
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-['VT323'] text-base text-white truncate font-medium group-hover:text-[#FFC061]" title={track.title}>
+                          <span className="font-['VT323'] text-lg text-white font-medium truncate group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || `YouTube Video [${track.videoId}]`}
                           </span>
                           <span className="text-xs text-gray-400 font-['VT323']">
@@ -1439,8 +1433,7 @@
                         <button 
                           onClick={() => onMove(index, -1)}
                           disabled={index === 0}
-                          className="btn-unclicked text-xs"
-                          style={{ padding: '2px 6px', height: '28px' }}
+                          className="btn-unclicked text-xs h-[28px] px-2"
                           title="Move Up"
                         >
                           ▲
@@ -1449,8 +1442,7 @@
                         <button 
                           onClick={() => onMove(index, 1)}
                           disabled={index === queue.length - 1}
-                          className="btn-unclicked text-xs"
-                          style={{ padding: '2px 6px', height: '28px' }}
+                          className="btn-unclicked text-xs h-[28px] px-2"
                           title="Move Down"
                         >
                           ▼
@@ -1458,8 +1450,7 @@
 
                         <button 
                           onClick={() => onRemove(index)}
-                          className="btn-unclicked pixel-btn-danger text-xs"
-                          style={{ padding: '2px 8px', height: '28px' }}
+                          className="btn-unclicked pixel-btn-danger text-xs h-[28px] px-2"
                           title="Remove from queue"
                         >
                           ✕
@@ -1478,8 +1469,7 @@
                 <button 
                   onClick={onClearAll}
                   disabled={queue.length === 0}
-                  className="btn-unclicked pixel-btn-danger text-sm font-bold"
-                  style={{ height: '36px', padding: '0 16px' }}
+                  className="btn-unclicked pixel-btn-danger text-sm font-bold h-[36px] px-4"
                 >
                   CLEAR ALL QUEUE
                 </button>
@@ -1487,16 +1477,16 @@
             </div>
           )}
 
-          {/* TAB 2: PLAYBACK HISTORY */}
+          {/* TAB 2: PLAYBACK HISTORY (Exact matching typography and frame size) */}
           {activeTab === 'history' && (
             <div className="flex flex-col flex-1 justify-between">
               <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
                 {history.length === 0 ? (
-                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
-                    <div className="font-['Press_Start_2P'] text-xs text-gray-400 mb-1">
+                  <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
+                    <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
                       NO PLAYBACK HISTORY
                     </div>
-                    <p className="font-['VT323'] text-sm text-gray-500">
+                    <p className="font-['VT323'] text-lg text-[#E08573]">
                       Played or skipped tracks will appear here in chronological order
                     </p>
                   </div>
@@ -1504,14 +1494,14 @@
                   history.map((track, index) => (
                     <div 
                       key={track.id + '_' + index}
-                      className="pixel-frame p-2 bg-[#2A2238]/70 flex items-center justify-between gap-2"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
                     >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
-                        <span className="text-sm text-[#FFC061] font-['Press_Start_2P'] w-8 shrink-0">
+                        <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           {index + 1}.
                         </span>
                         <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-['VT323'] text-base text-gray-200 truncate font-medium" title={track.title}>
+                          <span className="font-['VT323'] text-lg text-white font-medium truncate group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || track.videoId}
                           </span>
                           <span className="text-xs text-gray-400 font-['VT323']">
@@ -1523,8 +1513,7 @@
                       {/* Re-add button */}
                       <button 
                         onClick={() => onRequeue(track)}
-                        className="btn-unclicked text-xs shrink-0"
-                        style={{ padding: '2px 10px', height: '28px' }}
+                        className="btn-unclicked text-xs shrink-0 h-[28px] px-2.5"
                         title="Add this track back to queue"
                       >
                         + ADD TO QUEUE
@@ -1542,8 +1531,7 @@
                 <button 
                   onClick={onClearHistory}
                   disabled={history.length === 0}
-                  className="btn-unclicked pixel-btn-danger text-sm"
-                  style={{ height: '36px', padding: '0 16px' }}
+                  className="btn-unclicked pixel-btn-danger text-sm font-bold h-[36px] px-4"
                 >
                   CLEAR HISTORY
                 </button>
@@ -1555,7 +1543,7 @@
       );
     }
 
-    // --- RETRO ARCADE SEARCH POP-UP MODAL (100% CORS-FREE MULTI-TIER ENGINE) ---
+    // --- RETRO ARCADE SEARCH POP-UP MODAL ---
     function ArcadeSearchModal({ onClose, onAddTrack, onPlayTrack, showToast }) {
       const [searchQuery, setSearchQuery] = useState('');
       const [isSearching, setIsSearching] = useState(false);
@@ -1593,17 +1581,16 @@
 
         let searchSuccess = false;
 
-        // Tier 1: Real YouTube Official Search HTML parser via CORS Proxies
+        // Tier 1: YouTube Search via High-Reliability AllOrigins CORS Proxy
         const corsProxies = [
           `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
-          `https://corsproxy.io/?${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
           `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`
         ];
 
         for (const proxyUrl of corsProxies) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4800);
+            const timeoutId = setTimeout(() => controller.abort(), 4500);
             const res = await fetch(proxyUrl, { signal: controller.signal });
             clearTimeout(timeoutId);
 
@@ -1642,17 +1629,14 @@
                 }
               }
             }
-          } catch (e) {
-            // try next proxy
-          }
+          } catch (e) {}
         }
 
         // Tier 2: Piped API Endpoints with Native CORS
         if (!searchSuccess) {
           const pipedEndpoints = [
             `https://api.piped.private.coffee/search?q=${encodeURIComponent(q)}&filter=videos`,
-            `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`,
-            `https://piped-api.garudalinux.org/search?q=${encodeURIComponent(q)}&filter=videos`
+            `https://pipedapi.kavin.rocks/search?q=${encodeURIComponent(q)}&filter=videos`
           ];
 
           for (const ep of pipedEndpoints) {
@@ -1681,44 +1665,6 @@
                   
                   if (clean.length > 0) {
                     setResults(clean.slice(0, 15));
-                    searchSuccess = true;
-                    break;
-                  }
-                }
-              }
-            } catch (e) {}
-          }
-        }
-
-        // Tier 3: Invidious Instances via CORS Proxy
-        if (!searchSuccess) {
-          const invidiousProxies = [
-            `https://api.allorigins.win/raw?url=${encodeURIComponent('https://inv.nadeko.net/api/v1/search?q=' + encodeURIComponent(q) + '&type=video')}`,
-            `https://corsproxy.io/?${encodeURIComponent('https://inv.nadeko.net/api/v1/search?q=' + encodeURIComponent(q) + '&type=video')}`
-          ];
-
-          for (const p of invidiousProxies) {
-            try {
-              const controller = new AbortController();
-              const timeoutId = setTimeout(() => controller.abort(), 4000);
-              const res = await fetch(p, { signal: controller.signal });
-              clearTimeout(timeoutId);
-
-              if (res.ok) {
-                const data = await res.json();
-                if (Array.isArray(data) && data.length > 0) {
-                  const clean = data
-                    .filter(i => i.videoId || i.id)
-                    .map(i => ({
-                      videoId: i.videoId || i.id,
-                      title: i.title || 'Untitled Track',
-                      author: i.author || i.authorText || 'Artist',
-                      lengthText: i.lengthSeconds ? formatTime(i.lengthSeconds) : ''
-                    }))
-                    .slice(0, 15);
-                  
-                  if (clean.length > 0) {
-                    setResults(clean);
                     searchSuccess = true;
                     break;
                   }
@@ -1804,10 +1750,10 @@
                 </div>
               ) : results.length === 0 ? (
                 <div className="pixel-frame-inset p-8 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70">
-                  <div className="font-['Press_Start_2P'] text-xs text-gray-400 mb-1">
+                  <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
                     READY TO SEARCH
                   </div>
-                  <p className="font-['VT323'] text-base text-gray-400">
+                  <p className="font-['VT323'] text-lg text-[#E08573]">
                     Enter a song or artist name above to discover tracks and add them to your queue in 1 click
                   </p>
                 </div>
