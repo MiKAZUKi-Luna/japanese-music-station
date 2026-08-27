@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Japanese Music Station</title>
   
-  <!-- Inline SVG Music Note Favicon (Eliminates favicon.ico 404) -->
+  <!-- Inline SVG Music Note Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23131021'/><text y='.75em' x='50%' text-anchor='middle' font-size='70' fill='%23F57D7C'>%E2%99%AC</text></svg>">
 
   <!-- Retro Pixel Google Fonts -->
@@ -67,11 +67,15 @@
         width: 65%;
         flex: 0 0 65%;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
       }
       .panel-right-container {
         width: 35%;
         flex: 0 0 35%;
         min-width: 0;
+        display: flex;
+        flex-direction: column;
       }
     }
 
@@ -403,7 +407,7 @@
     // --- MAIN PARENT COMPONENT ---
     function App() {
       const [queue, setQueue] = useState(() => {
-        const saved = safeGet('jms_queue_v12', null);
+        const saved = safeGet('jms_queue_v13', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -411,7 +415,7 @@
       });
 
       const [currentTrack, setCurrentTrack] = useState(() => {
-        const saved = safeGet('jms_current_v12', null);
+        const saved = safeGet('jms_current_v13', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -419,7 +423,7 @@
       });
 
       const [history, setHistory] = useState(() => {
-        const saved = safeGet('jms_history_v12', null);
+        const saved = safeGet('jms_history_v13', null);
         if (saved) {
           try { return JSON.parse(saved); } catch (e) {}
         }
@@ -431,7 +435,7 @@
       
       // Default volume: 25%
       const [volume, setVolume] = useState(() => {
-        const saved = safeGet('jms_volume_v12', null);
+        const saved = safeGet('jms_volume_v13', null);
         return saved !== null ? Number(saved) : 25;
       });
 
@@ -465,10 +469,10 @@
       useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
 
       // Persist state
-      useEffect(() => { safeSet('jms_queue_v12', JSON.stringify(queue)); }, [queue]);
-      useEffect(() => { safeSet('jms_current_v12', JSON.stringify(currentTrack)); }, [currentTrack]);
-      useEffect(() => { safeSet('jms_history_v12', JSON.stringify(history)); }, [history]);
-      useEffect(() => { safeSet('jms_volume_v12', volume.toString()); }, [volume]);
+      useEffect(() => { safeSet('jms_queue_v13', JSON.stringify(queue)); }, [queue]);
+      useEffect(() => { safeSet('jms_current_v13', JSON.stringify(currentTrack)); }, [currentTrack]);
+      useEffect(() => { safeSet('jms_history_v13', JSON.stringify(history)); }, [history]);
+      useEffect(() => { safeSet('jms_volume_v13', volume.toString()); }, [volume]);
 
       const showToast = (msg) => {
         setToastMsg(msg);
@@ -855,7 +859,8 @@
         showToast(`Playing: ${newTrack.title}`);
       };
 
-      const handleRequeueFromHistory = (track) => {
+      // Moving track from History back to Queue removes it from History (as requested)
+      const handleRequeueFromHistory = (track, historyIndex) => {
         sfx.coin();
         const newTrack = {
           id: 'trk_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
@@ -864,7 +869,8 @@
           addedAt: Date.now()
         };
         setQueue(prev => [...prev, newTrack]);
-        showToast(`Added "${newTrack.title || newTrack.videoId}" back to queue`);
+        setHistory(prev => prev.filter((_, idx) => idx !== historyIndex));
+        showToast(`Moved "${newTrack.title || newTrack.videoId}" to queue`);
       };
 
       const playNowFromQueue = (index) => {
@@ -999,7 +1005,7 @@
               />
             </div>
 
-            {/* RIGHT PANEL (35% Width) */}
+            {/* RIGHT PANEL (35% Width, Stretches 100% Height) */}
             <div className="panel-right-container flex flex-col gap-3">
               <RightQueuePanel 
                 queue={queue}
@@ -1349,7 +1355,7 @@
       );
     }
 
-    // --- RIGHT PANEL COMPONENT (100% Symmetrical Queue & History Sub-panels) ---
+    // --- RIGHT PANEL COMPONENT (100% Vertical Space Utilization & Clean Single-Line Rows) ---
     function RightQueuePanel({
       queue,
       history,
@@ -1364,10 +1370,10 @@
       onRequeue
     }) {
       return (
-        <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full min-h-[500px]">
+        <div className="pixel-frame p-3 bg-[#1D1728]/90 flex flex-col h-full flex-1">
           
           {/* Panel Header & Navigation Tabs (Exact Equal 50/50 Width & Height) */}
-          <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2">
+          <div className="flex items-center gap-2 border-b-2 border-[#3D2F4C] pb-2 mb-2 shrink-0">
             <button 
               onClick={() => { sfx.switch(); setActiveTab('queue'); }}
               className={`btn-tab ${activeTab === 'queue' ? 'btn-clicked' : 'btn-unclicked'}`}
@@ -1383,12 +1389,12 @@
             </button>
           </div>
 
-          {/* TAB 1: QUEUE LIST */}
+          {/* TAB 1: QUEUE LIST (Expands 100% to fill panel height) */}
           {activeTab === 'queue' && (
-            <div className="flex flex-col flex-1 justify-between">
+            <div className="flex flex-col flex-1 min-h-0 justify-between">
               
-              {/* Queue Items Container */}
-              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
+              {/* Queue Items Container (Fills 100% available space with custom scrollbar) */}
+              <div className="flex-1 min-h-0 overflow-y-auto pr-1 flex flex-col gap-2">
                 {queue.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
                     <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
@@ -1402,9 +1408,9 @@
                   queue.map((track, index) => (
                     <div 
                       key={track.id}
-                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[46px]"
                     >
-                      {/* Left: Index + Play Button + Info */}
+                      {/* Left: Index + Play Button + Clean Single-Line Title */}
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           #{index + 1}
@@ -1418,12 +1424,9 @@
                           PLAY
                         </button>
 
-                        <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-['VT323'] text-lg text-white font-medium truncate group-hover:text-[#FFC061]" title={track.title}>
+                        <div className="overflow-hidden min-w-0 flex-1">
+                          <span className="font-['VT323'] text-lg text-white font-medium truncate block group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || `YouTube Video [${track.videoId}]`}
-                          </span>
-                          <span className="text-xs text-gray-400 font-['VT323']">
-                            ID: {track.videoId} • Added {new Date(track.addedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                       </div>
@@ -1462,7 +1465,7 @@
               </div>
 
               {/* Bottom Actions for Queue */}
-              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2 shrink-0">
                 <span className="text-xs font-['Silkscreen'] text-gray-400">
                   Total: {queue.length} tracks
                 </span>
@@ -1477,10 +1480,10 @@
             </div>
           )}
 
-          {/* TAB 2: PLAYBACK HISTORY (Exact matching typography and frame size) */}
+          {/* TAB 2: PLAYBACK HISTORY (Expands 100% to fill panel height) */}
           {activeTab === 'history' && (
-            <div className="flex flex-col flex-1 justify-between">
-              <div className="flex-1 overflow-y-auto max-h-[560px] pr-1 flex flex-col gap-2">
+            <div className="flex flex-col flex-1 min-h-0 justify-between">
+              <div className="flex-1 min-h-0 overflow-y-auto max-h-[100%] pr-1 flex flex-col gap-2">
                 {history.length === 0 ? (
                   <div className="pixel-frame-inset p-6 text-center my-auto flex flex-col items-center justify-center bg-[#131021]/70 min-h-[160px]">
                     <div className="font-['Press_Start_2P'] text-xs text-[#FFC061] tracking-wider mb-2">
@@ -1494,27 +1497,24 @@
                   history.map((track, index) => (
                     <div 
                       key={track.id + '_' + index}
-                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[52px]"
+                      className="pixel-frame p-2 bg-[#2A2238]/90 hover:bg-[#5B3256]/50 transition-colors flex items-center justify-between gap-2 group min-h-[46px]"
                     >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                         <span className="w-8 text-center font-['Press_Start_2P'] text-xs text-[#E08573] shrink-0">
                           {index + 1}.
                         </span>
-                        <div className="flex flex-col overflow-hidden min-w-0">
-                          <span className="font-['VT323'] text-lg text-white font-medium truncate group-hover:text-[#FFC061]" title={track.title}>
+                        <div className="overflow-hidden min-w-0 flex-1">
+                          <span className="font-['VT323'] text-lg text-white font-medium truncate block group-hover:text-[#FFC061]" title={track.title}>
                             {track.title || track.videoId}
-                          </span>
-                          <span className="text-xs text-gray-400 font-['VT323']">
-                            ID: {track.videoId}
                           </span>
                         </div>
                       </div>
 
-                      {/* Re-add button */}
+                      {/* Re-add button: Moves track from History to Queue */}
                       <button 
-                        onClick={() => onRequeue(track)}
-                        className="btn-unclicked text-xs shrink-0 h-[28px] px-2.5"
-                        title="Add this track back to queue"
+                        onClick={() => onRequeue(track, index)}
+                        className="btn-unclicked text-xs shrink-0 h-[28px] px-2.5 font-bold"
+                        title="Move this track back to queue"
                       >
                         + ADD TO QUEUE
                       </button>
@@ -1524,7 +1524,7 @@
               </div>
 
               {/* Bottom Actions for History */}
-              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2">
+              <div className="pt-3 mt-2 border-t-2 border-[#3D2F4C] flex items-center justify-between gap-2 shrink-0">
                 <span className="text-xs font-['Silkscreen'] text-gray-400">
                   History: {history.length} items
                 </span>
@@ -1581,7 +1581,7 @@
 
         let searchSuccess = false;
 
-        // Tier 1: YouTube Search via High-Reliability AllOrigins CORS Proxy
+        // Tier 1: Real YouTube Official Search via allorigins.win and corsproxy.io
         const corsProxies = [
           `https://api.allorigins.win/raw?url=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`,
           `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent('https://www.youtube.com/results?search_query=' + encodeURIComponent(q))}`

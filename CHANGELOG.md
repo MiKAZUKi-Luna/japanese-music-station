@@ -4,25 +4,36 @@ Chronological record of all updates, bug fixes, and refinements for **Japanese M
 
 ---
 
-## 📦 [Version 1.5.5] — Unobstructed Video Display, Panel Symmetry & Favicon 🛠️
+## 📦 [Version 1.5.6] — Right Panel Height Optimization & Row Streamlining 📐
 *Release Date: August 27, 2026*
 
-### 1. Unobstructed 16:9 Video Screen
-* **Removed Floating 'ON AIR' Badge Overlay**: Removed the small rectangular overlay badge inside the top-right corner of the video area that was obstructing YouTube's native Settings Gear (⚙️) and Share controls. The top status indicator (`● ON AIR` / `■ STANDBY`) in the booth frame header remains intact.
+### 1. 100% Vertical Space Utilization in Right Panel
+* **Dynamic Full-Height Layout**: Replaced the fixed `max-h-[560px]` constraint with flexbox auto-stretching (`flex: 1 1 0%` + `min-height: 0`). The Queue and History scrollable lists now expand to occupy the entire vertical height of the panel, eliminating empty bottom gaps and fitting more songs comfortably.
 
-### 2. Symmetrical Typography & Layout for Right Panel
-* **Empty State Cards**: Harmonized font families (`Press Start 2P` header, `VT323` subtitle), colors (`#FFC061` header, `#E08573` subtitle), and box sizes across both `QUEUE` and `HISTORY` tabs.
-* **Track Rows & Action Bars**: Aligned row item fonts (`VT323 text-lg`), index badges (`#E08573`), button heights (`28px`), and footer Clear buttons (`36px`).
+### 2. Streamlined Single-Line Track Rows (Fixed Text Overlapping)
+* **Removed Redundant Sub-Labels**: Removed `ID:` and `Added:` timestamps from both Queue and History rows.
+* **Clean Single-Line Layout**: Track titles now occupy a single, crisp line with automatic text truncation (`...`), preventing text stacking or overlapping when resizing the browser window.
 
-### 3. Integrated SVG Favicon (Fixed Favicon 404)
-* Embedded an inline SVG music note favicon (`♫`) in the HTML `<head>` data URI to prevent browser 404 errors for `favicon.ico`.
+### 3. History-to-Queue Transfer Cleanup
+* **Auto-Removal on Re-queue**: Clicking **`+ ADD TO QUEUE`** in the History tab now transfers the song into the active Queue and immediately removes it from History, avoiding redundant duplicate listings.
+
+### 4. Unobstructed Video Display
+* **Removed Floating 'ON AIR' Badge Overlay**: Removed the overlay badge from inside the 16:9 video frame that was obstructing YouTube's native Settings Gear (⚙️) and CC buttons.
+
+---
+
+## 📦 [Version 1.5.5] — Symmetrical Panels & Favicon Integration 🎨
+*Release Date: August 27, 2026*
+
+* Standardized typography, colors, and layout symmetry between Queue and History sub-panels.
+* Embedded inline SVG pixel music note favicon (`♫`) in `<head>` to prevent `favicon.ico 404` errors.
 
 ---
 
 ## 📦 [Version 1.5.4] — Universal CORS-Free YouTube Search Engine 🔍
 *Release Date: August 26, 2026*
 
-* **Fixed CORS Block on Search**: Rebuilt the search engine with a multi-proxy fallback and direct YouTube HTML parser, ensuring reliable search results across all browsers without API keys.
+* Rebuilt search engine with multi-proxy fallback and direct YouTube HTML parser.
 
 ---
 

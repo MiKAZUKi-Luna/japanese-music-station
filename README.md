@@ -1,4 +1,4 @@
-# Japanese Music Station 🎵🌆
+# Japanese Music Station (v1.5.6) 🎵🌆
 
 A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop** aesthetic. Built as a single self-contained HTML file that runs instantly by double-clicking or can be deployed directly to Netlify via GitHub with zero build steps or npm installations.
 
@@ -6,16 +6,15 @@ A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop
 
 ## 🕹️ 1. Key Highlights & Features
 
-* **Unobstructed 16:9 Display Area**: Removed floating overlays from inside the video frame, ensuring 100% visibility for YouTube's native Settings Gear (⚙️), CC Subtitles, Share, and Fullscreen buttons.
+* **100% Vertical Space Utilization**: The Right Panel (Queue & History) now dynamically fills the entire height of the workspace without awkward bottom gaps or restricted list bounds.
+* **Streamlined Single-Line Track Rows**: Removed redundant metadata (`ID:` and `Added:`) from Queue and History, completely eliminating text overlapping on smaller windows.
+* **Smart History-to-Queue Transfer**: Clicking **`+ ADD TO QUEUE`** in History moves the track back into the active Queue and removes it from History.
+* **Unobstructed 16:9 Display Area**: Zero overlay badges inside the video frame, ensuring 100% accessibility for YouTube's native Settings Gear (⚙️), CC Subtitles, Share, and Fullscreen buttons.
 * **Symmetrical Queue & History Panels**: Identical typography (`Press Start 2P` + `VT323`), color palette, padding, and button proportions across both tabs.
 * **Inline Pixel Favicon**: Embedded SVG data URI music note favicon (`♫`) eliminates 404 errors on Netlify and local previews.
 * **Universal CORS-Free YouTube Search**: Multi-tier real-time search engine with fallback support and instant 1-click queuing.
 * **Unified Retro Button System**: Strict, consistent button states across the entire application — unclicked (white text, dark base, border) and clicked (dark text, bright pink/gold base, contrast border).
 * **Proportional Group Sizing**: Buttons in the same functional groups (Tabs, Transport, Modes, Speeds, Actions, Header) share matching heights, widths, and alignments.
-* **Virtual 80s DJ Booth**: Inspired by retro pixel art environments and Japanese City Pop vibes.
-* **16/32-Bit Procedural Dusk Cityscape**: Features Mount Fuji, Tokyo Tower, overhead power lines, and glowing retro neon signs.
-* **Full YouTube Native Controls**: Settings Gear (⚙️) for 1080p/720p resolution and CC Subtitle toggle without Player Error 153.
-* **Smart Queue & History**: Re-order, delete, clear, and re-add previously played tracks in chronological order.
 
 ---
 
@@ -53,14 +52,14 @@ A retro-futuristic YouTube music queue player with a **Pixel Art × 80s City Pop
    * Clear Queue
 
 ### Right Panel (35% — Queue & History):
-1. **QUEUE Tab**: Symmetrical empty state card & list rows with [PLAY], [▲] Move Up, [▼] Move Down, and [✕] Delete actions, plus "CLEAR ALL QUEUE".
-2. **HISTORY Tab**: Symmetrical empty state card & list rows in chronological order (1., 2., 3...) with a 1-click **`+ ADD TO QUEUE`** button and "CLEAR HISTORY".
+1. **QUEUE Tab**: Full-height dynamic list with clean single-line rows `[#Index] [PLAY] Title [▲] [▼] [✕]` and "CLEAR ALL QUEUE".
+2. **HISTORY Tab**: Full-height dynamic list in chronological order `[Index.] Title [+ ADD TO QUEUE]` with instant queue transfer and "CLEAR HISTORY".
 
 ---
 
 ## 🛠️ 4. Tech Stack
 
-* **HTML5 / Single File**: Entire application in `index.html` (or `japanese-music-station-v1.5.5.html`) with zero dependencies.
+* **HTML5 / Single File**: Entire application in `index.html` (or `japanese-music-station-v1.5.6.html`) with zero dependencies.
 * **React 18 & Babel Standalone**: Client-side reactive UI via Cloudflare CDNjs.
 * **Tailwind CSS**: Utility styling with inline configuration.
 * **YouTube IFrame API**: Video playback and state synchronization.
